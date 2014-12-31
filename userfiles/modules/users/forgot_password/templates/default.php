@@ -1,4 +1,4 @@
-<script>mw.moduleCSS("<?php print MW_MODULES_URL; ?>users/users_modules.css")</script>
+<script>mw.moduleCSS("<?php print modules_url(); ?>users/users_modules.css")</script>
 
 <div class="module-forgot-password well">
   <?php if(!isset($show_login_link) or $show_login_link != 'n'): ?>

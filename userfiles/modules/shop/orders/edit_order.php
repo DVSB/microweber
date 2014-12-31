@@ -2,7 +2,7 @@
 
 only_admin_access();
 
-$ord = mw('shop')->get_order_by_id($params['order-id']);
+$ord = mw()->shop_manager->get_order_by_id($params['order-id']);
 
 $cart_items = array();
 if (is_array($ord)) {
@@ -65,8 +65,8 @@ else {
                     data-index="<?php print $index; ?>"
                     class="mw-order-item mw-order-item-<?php print $item['id'] ?> mw-order-item-index-<?php print $index; ?>">
                 <td   class="mw-order-item-id"><a href="<?php print content_link($item['rel_id']) ?>" target="_blank"><span><?php print $item['title'] ?></span></a>
-                  <?php if ($item['rel'] == 'content'): ?>
-                  <?php $data_fields = mw('content')->data($item['rel_id']); ?>
+                  <?php if ($item['rel_type'] == 'content'): ?>
+                  <?php $data_fields = mw()->content_manager->data($item['rel_id']); ?>
                   <?php if (isset($data_fields['sku']) and $data_fields['sku'] != ''): ?>
                   <small class="mw-ui-label-help">
                   <?php _e("SKU"); ?>
@@ -213,10 +213,10 @@ else {
                   <?php _e("Is Paid"); ?>
                   :
                   <select name="is_paid" class="mw-ui-field mw-ui-field-medium mw-order-is-paid-change">
-                    <option value="y" <?php if (isset($ord['is_paid']) and $ord['is_paid'] == 'y'): ?> selected="selected" <?php endif; ?>>
+                    <option value="1" <?php if (isset($ord['is_paid']) and $ord['is_paid'] == 1): ?> selected="selected" <?php endif; ?>>
                     <?php _e("Yes"); ?>
                     </option>
-                    <option value="n" <?php if (isset($ord['is_paid']) and $ord['is_paid'] != 'y'): ?> selected="selected" <?php endif; ?>>
+                    <option value="0" <?php if (isset($ord['is_paid']) and $ord['is_paid'] != 1): ?> selected="selected" <?php endif; ?>>
                     <?php _e("No"); ?>
                     </option>
                   </select>

@@ -41,7 +41,7 @@ function mw_delete_shop_order(pid, iscart){
      });
 }
 </script>
-<?php  mw('Microweber\Notifications')->mark_as_read('shop');  ?>
+<?php  mw()->notifications_manager->mark_as_read('shop');  ?>
 <div class="admin-section-container">
   <div class="mw-simple-rotator">
       <div class="mw-simple-rotator-container" id="orders-rotator">

@@ -20,13 +20,13 @@ if ($template != false and strtolower($template) != 'none') {
 	    $template_file = module_templates($params['type'], 'default');
 	}
 }
-$sid = session_id();
+$sid = mw()->user_manager->session_id();
 if($sid == ''){
-    session_start();
+    // //session_start();
 }
 $cart = array();
-$cart['session_id'] = session_id();
-$cart['order_completed'] = 'n';
+$cart['session_id'] = mw()->user_manager->session_id();
+$cart['order_completed'] = 0;
 
 $data = get_cart($cart);
    

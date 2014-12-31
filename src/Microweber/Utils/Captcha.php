@@ -44,10 +44,10 @@ class Captcha
             $captcha_sid = 'captcha_' . $_GET['id'];
         }
 
-        $sess = mw()->user->session_set($captcha_sid, $answ);
-        // $test = mw()->user->session_get('captcha');
+        $sess = mw()->user_manager->session_set($captcha_sid, $answ);
+        // $test = mw()->user_manager->session_get('captcha');
 
-        // session_write_close();
+        // //session_write_close();
         $col1z = rand(200, 242);
         $col1z1 = rand(150, 242);
         $col1z11 = rand(150, 242);

@@ -3,7 +3,7 @@ only_admin_access();
 
  $mw_notif =  (url_param('mw_notif'));
 if( $mw_notif != false){
- $mw_notif = mw('Microweber\Notifications')->read( $mw_notif);
+ $mw_notif = mw()->notifications_manager->read( $mw_notif);
 
 }
 

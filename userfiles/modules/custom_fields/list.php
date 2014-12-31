@@ -60,28 +60,28 @@ if(isset($params['list-preview']) and $params['list-preview'] != 'false'){
 ?>
 <?php
  
- 
+
 $data = array();
  if(isset($params['for_module_id'])): ?>
 <?php
 if(isset($params['default-fields'])){
-	mw('fields')->make_default($for,$params['for_module_id'],$params['default-fields']);
+	mw()->fields_manager->make_default($for,$params['for_module_id'],$params['default-fields']);
 }
-
+   
 	$more = get_custom_fields($for,$params['for_module_id'],1,false,false);
  
  if($suggest_from_rel == true){
 	 $par =array();
-	 $par['rel'] = $for;
+	 $par['rel_type'] = $for;
 	 $more = get_custom_fields($for,'all',1,false,false);
 	 $have = array();
 	  if(isset($diff) and is_array($diff)){
 		$i=0;
 		 foreach($diff as $item){
-			if(isset($item['custom_field_name']) and in_array($item['custom_field_name'],$have)){
+			if(isset($item['name']) and in_array($item['name'],$have)){
 				 unset($diff[$i]);
-			} else if(isset($diff[$i]) and isset($item['custom_field_name'])){
-				$have[] = $item['custom_field_name'];
+			} else if(isset($diff[$i]) and isset($item['name'])){
+				$have[] = $item['name'];
 			 }
 			 $i++; 
 		 }
@@ -89,17 +89,17 @@ if(isset($params['default-fields'])){
 	 if(is_array($more)){
 		$i=0;
 		 foreach($more as $item){
-			if(isset($item['custom_field_name']) and in_array($item['custom_field_name'],$have)){
+			if(isset($item['name']) and in_array($item['name'],$have)){
 				 unset($more[$i]);
-			} else if(isset($more[$i]) and isset($item['custom_field_name'])){
-				$have[] = $item['custom_field_name'];
+			} else if(isset($more[$i]) and isset($item['name'])){
+				$have[] = $item['name'];
 			 }
 			 $i++; 
 		 }
 	 }
 	 
  }
- $custom_custom_field_names_for_content = array();
+ $custom_names_for_content = array();
 if(is_array( $diff) and is_array($more) ){
      $i=0;
 	 foreach($more as $item2){
@@ -109,8 +109,8 @@ if(is_array( $diff) and is_array($more) ){
 				    unset($more[$i]);
 				  }
 			  }
-              if(isset($more[$i]) and isset($item1['custom_field_name'])){
-                if($item1['custom_field_name'] == $item2['custom_field_name']){
+              if(isset($more[$i]) and isset($item1['name'])){
+                if($item1['name'] == $item2['name']){
                   unset($more[$i]);
                 }
               }
@@ -137,13 +137,13 @@ if(is_array( $diff) and is_array($more) ){
   <?php endif; ?>
   <?php foreach( $more as $field): ?>
   <?php if(isset($params['save_to_content_id'])): ?>
-  <a class="mw-ui-btn mw-ui-btn-small mw-field-type-<?php print $field['custom_field_type']; ?>" href="javascript:;"
-    onmouseup="mw.custom_fields.copy_field_by_id('<?php print $field['id'] ?>', 'content', '<?php print intval($params['save_to_content_id']); ?>');"><span class="ico ico-<?php print $field['custom_field_type']; ?>"></span><?php print ($field['title']); ?> </a>
+  <a class="mw-ui-btn mw-ui-btn-small mw-field-type-<?php print $field['type']; ?>" href="javascript:;"
+    onmouseup="mw.custom_fields.copy_field_by_id('<?php print $field['id'] ?>', 'content', '<?php print intval($params['save_to_content_id']); ?>');"><span class="ico ico-<?php print $field['type']; ?>"></span><?php print ($field['title']); ?> </a>
   <?php else: ?>
-  <a class="mw-ui-btn mw-ui-btn-small mw-field-type-<?php print $field['custom_field_type']; ?>" href="javascript:;"
+  <a class="mw-ui-btn mw-ui-btn-small mw-field-type-<?php print $field['type']; ?>" href="javascript:;"
     data-id="<?php print $field['id'] ?>"
     id="custom-field-<?php print $field['id'] ?>"
-    onmouseup="mw.custom_fields.edit('.mw-admin-custom-field-edit-item','<?php print $field['id'] ?>', false, event);"> <span class="ico ico-<?php print $field['custom_field_type'] ?>"></span> <span onclick="mw.admin.custom_fields.del(<?php print $field['id'] ?>, this.parentNode);" class="mw-icon-close"></span> <?php print ($field['title']); ?> </a>
+    onmouseup="mw.custom_fields.edit('.mw-admin-custom-field-edit-item','<?php print $field['id'] ?>', false, event);"> <span class="ico ico-<?php print $field['type'] ?>"></span> <span onclick="mw.admin.custom_fields.del(<?php print $field['id'] ?>, this.parentNode);" class="mw-icon-close"></span> <?php print ($field['title']); ?> </a>
   <?php endif; ?>
   <?php endforeach; ?>
 </div>
@@ -169,7 +169,7 @@ if(is_array( $diff) and is_array($more) ){
     <?php foreach( $more as $field): ?>
     <tr id="mw-custom-list-element-<?php print $field['id']; ?>" data-id="<?php print $field['id']; ?>">
       <td data-tip="<?php print  ucfirst($field['type']); ?>" class="tip custom-field-icon" data-tipposition="top-left"><div><span class="mw-custom-field-icon-<?php print $field['type']; ?>"></span></div></td>
-      <td data-id="<?php print $field['id']; ?>"><span class="mw-admin-custom-field-name-edit-inline" data-id="<?php print $field['id']; ?>"><?php print $field['custom_field_name']; ?></span></td>
+      <td data-id="<?php print $field['id']; ?>"><span class="mw-admin-custom-field-name-edit-inline" data-id="<?php print $field['id']; ?>"><?php print $field['name']; ?></span></td>
       <td data-id="<?php print $field['id']; ?>" width="100%">
       
     

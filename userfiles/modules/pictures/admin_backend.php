@@ -7,6 +7,7 @@
 
 
 
+
 if(!isset($for_id)){
 $for_id = 0;
 }
@@ -29,7 +30,7 @@ if(isset($params['content_id'])){
 	 $for = 'content';
 }
 
-$for =  mw('db')->assoc_table_name($for);
+$for =  mw()->database_manager->assoc_table_name($for);
 
 if(!isset($params['for-id'])){
 	$params['for-id'] = $params['id'];
@@ -39,7 +40,7 @@ if(isset($params['for-id'])){
 	$for_id = $params['for-id'];
 }
 
- 
+
 
  
  ?> 
@@ -100,19 +101,22 @@ $(document).ready(function(){
    }
 ?>
 
+
+
+
 <input name="thumbnail"  type="hidden" value="<?php print ($data['thumbnail'])?>" />
 <?php
  
 if(trim($for_id)  != '' and trim($for_id)  != '0'){
-    $media = get_pictures("rel_id={$for_id}&rel={$for}");
+    $media = get_pictures("rel_id={$for_id}&rel_type={$for}");
 } else {
-	 $sid = session_id();
+	 $sid = mw()->user_manager->session_id();
 	 if($sid == ''){
-		session_start();
-		$sid = session_id();
+		// //session_start();
+		$sid = mw()->user_manager->session_id();
 	 }
  
-	$media = get_pictures("rel_id=0&rel={$for}&session_id={$sid}");
+	$media = get_pictures("rel_id=0&rel_type={$for}&session_id={$sid}");
 }
 
 

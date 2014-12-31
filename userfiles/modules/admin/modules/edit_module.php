@@ -7,7 +7,7 @@ $id = 	$params["data-module-id"];
 $data = array();
 if($id != false){
 
-	$data = mw('module')->get('ui=any&limit=1&id='.$id);
+	$data = mw()->modules->get('ui=any&limit=1&id='.$id);
 	if(isset($data[0])){
 	$data = $data[0];
 	}
@@ -111,7 +111,7 @@ $('#module_open_<?php print $params['id']; ?>').hide();
     <div class="admin-modules-list-description">
       <h2 title="<?php print $data['module'] ?>">
         <?php if(isset($data['name'])):  ?>
-        <?php _e($data['name']); ?>
+        <?php print($data['name']); ?>
         <?php endif; ?>
       </h2>
     </div>

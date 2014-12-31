@@ -2,7 +2,7 @@
  
 $payment_success = false;
 if (isset($_SESSION['mw_payment_success'])) {
-    mw('user')->session_del('mw_payment_success');
+    mw()->user_manager->session_del('mw_payment_success');
     $payment_success = true;
 }
 

@@ -1,5 +1,6 @@
 <?php
 
+namespace shop\shipping;
 
 //api_expose('shipping_api');
 
@@ -10,6 +11,7 @@ class shipping_api
     public $here;
     public $modules_list;
 
+	public $table = 'cart_shipping';
     // private constructor function
     // to prevent external instantiation
     function __construct()
@@ -62,7 +64,7 @@ class shipping_api
             if (isset($data['id']) and intval($data['id']) > 0) {
 
             } else {
-                $check = get('shipping_country=' . $data['shipping_country']);
+                $check = db_get('shipping_country=' . $data['shipping_country']);
                 if ($check != false and is_array($check[0]) and isset($check[0]['id'])) {
                     $data['id'] = $check[0]['id'];
                 }
@@ -70,7 +72,7 @@ class shipping_api
         }
 
 
-        $data = mw('db')->save($this->table, $data);
+        $data = mw()->database->save($this->table, $data);
         return ($data);
     }
 
@@ -104,7 +106,7 @@ class shipping_api
 
         if (isset($data['id'])) {
             $c_id = intval($data['id']);
-            mw('db')->delete_by_id($this->table, $c_id);
+            mw()->database_manager->delete_by_id($this->table, $c_id);
 
             //d($c_id);
         }

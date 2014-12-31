@@ -41,7 +41,7 @@ if (isset($place_order['shipping']) and intval($place_order['shipping']) > 0) {
 
 
 
-$currencies_list_paypal = mw('shop')->currency_get_for_paypal();
+$currencies_list_paypal = mw()->shop_manager->currency_get_for_paypal();
 $currencyCode = $place_order['currency'];
 
 if (!in_array(strtoupper($place_order['currency']), $currencies_list_paypal)){
@@ -110,8 +110,8 @@ $place_order = $res;
 	$place_order['payment_name'] = $firstName . ' ' . $lastName;
 	$place_order['payer_id'] =  substr_replace($creditCardNumber, '*****', 0, strlen($creditCardNumber)-4)  ;
 	$place_order['payment_amount'] = $resArray['AMT'];
-	$place_order['is_paid'] = 'y';
-	$place_order['order_completed'] = 'y';
+	$place_order['is_paid'] = 1;
+	$place_order['order_completed'] = 1;
 	$place_order['payment_currency'] = $currencyCode;
  $place_order['success'] = 'Your payment was successful! Transaction id: ' . $resArray['TRANSACTIONID'];
 }

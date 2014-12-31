@@ -11,7 +11,7 @@ description: Default Search template
 */
 
   ?>
-<script>mw.moduleCSS("<?php print MW_MODULES_URL; ?>search/search.css"); </script>
+<script>mw.moduleCSS("<?php print modules_url(); ?>search/search.css"); </script>
 <div class="mw-search mw-search-default" id="search_box_holder_<?php  print $params['id'] ?>">
 
    <div class="mw-ui-row">

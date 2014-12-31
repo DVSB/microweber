@@ -20,9 +20,9 @@
       <?php
           $mw_notif =  (url_param('mw_notif'));
           if( $mw_notif != false){
-              $mw_notif = mw('Microweber\Notifications')->read( $mw_notif);
+              $mw_notif = mw()->notifications_manager->read( $mw_notif);
           }
-          mw('Microweber\Notifications')->mark_as_read('contact_form');
+          mw()->notifications_manager->mark_as_read('contact_form');
       ?>
       <?php if(is_array($mw_notif) and isset($mw_notif['rel_id'])): ?>
       <script type="text/javascript">
@@ -33,7 +33,7 @@
       <?php else :  ?>
       <?php endif; ?>
       <?php
-          mw('Microweber\Notifications')->mark_as_read('contact_form');
+          mw()->notifications_manager->mark_as_read('contact_form');
           $load_list = 'default';
           if((url_param('load_list') != false)){
               $load_list = url_param('load_list');
@@ -91,8 +91,8 @@
           });
 
       </script>
-        <module type="forms/list_toolbar"  load_list="<?php print $load_list ?>"   />
-        <module type="forms/list" load_list="<?php print $load_list ?>"  for_module="<?php print $config["the_module"] ?>" id="forms_data_module" />
+        <module type="contact_form/manager/list_toolbar"  load_list="<?php print $load_list ?>"   />
+        <module type="contact_form/manager/list" load_list="<?php print $load_list ?>"  for_module="<?php print $config["the_module"] ?>" id="forms_data_module" />
         <?php if(strtolower(trim($load_list)) != 'default'): ?>
         <span class="mw-ui-delete right" onclick="mw.forms_data_manager.delete_list('<?php print addslashes($load_list); ?>');">
         <?php _e("Delete list"); ?>

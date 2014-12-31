@@ -14,7 +14,7 @@ description: Login default
 <?php $user = user_id(); ?>
 <?php $have_social_login = false; ?>
 
-<script>mw.moduleCSS("<?php print MW_MODULES_URL; ?>users/login/templates.css")</script>
+<script>mw.moduleCSS("<?php print modules_url(); ?>users/login/templates.css")</script>
 
 <div id="mw-login" class="module-login well">
   <?php if($user != false): ?>
@@ -36,9 +36,9 @@ description: Login default
     </div>
     <a class="reset-password-link" href="<?php print forgot_password_url(); ?>"><?php _e("Forgot password"); ?>?</a>
 
-    
+
     <div class="alert" style="margin: 0;display: none;"></div>
-    
+
 
     <div class="social-login">
 
@@ -73,9 +73,7 @@ description: Login default
         <?php if($google): ?>
         <li><a href="<?php print api_link('user_social_login?provider=google') ?>" class="mw-signin-with-google">Google login</a></li>
         <?php endif; ?>
-        <?php if($windows): ?>
-        <li><a href="<?php print api_link('user_social_login?provider=live') ?>" class="mw-signin-with-live">Windows login</a></li>
-        <?php endif; ?>
+
         <?php if($github): ?>
         <li><a href="<?php print api_link('user_social_login?provider=github') ?>" class="mw-signin-with-github">Github login</a></li>
         <?php endif; ?>

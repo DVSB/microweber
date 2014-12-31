@@ -2,11 +2,11 @@
 only_admin_access();
 $is_shop = false;
 
-if (isset($params['is_shop']) and $params['is_shop'] == 'y') {
-    $is_shop = 1;
+if (isset($params['is_shop'])) {
+    $is_shop = $params['is_shop'];
 }
 
-$dir_name = normalize_path(MW_MODULES_DIR);
+$dir_name = normalize_path(modules_path());
  
 $posts_mod = $dir_name . 'posts' . DS . 'admin_live_edit_tab1.php';;
 ?>
@@ -48,9 +48,11 @@ if (isset($params['global'])) {
 }
 if ($is_global == false) {
     if (isset($params['is_shop']) and $params['is_shop'] == 'y') {
-        $add_post_q .= ' subtype="product" is_shop=y ';
+        $add_post_q .= ' content_type="product"   ';
+    } else if (isset($params['content_type']) and $params['content_type'] != '') {
+        $add_post_q .= ' content_type="'.$params['content_type'].'"   ';
     } else {
-        $add_post_q .= ' subtype="post" ';
+        $add_post_q .= ' content_type="post" ';
     }
 }
 
@@ -81,9 +83,9 @@ if ($posts_parent_category != false) {
 if (!isset($params['global']) and $posts_parent_page != false and $posts_parent_category != false and intval($posts_parent_category) > 0) {
 
     $str0 = 'table=categories&limit=1000&data_type=category&what=categories&' . 'parent_id=0&rel_id=' . $posts_parent_page;
-    $page_categories = get($str0);
+    $page_categories = db_get($str0);
     $sub_cats = array();
-    $page_categories = get($str0);
+    $page_categories = db_get($str0);
      if (is_array($page_categories)) {
         foreach ($page_categories as $item_cat) {
              $sub_cats[] = $item_cat['id'];
@@ -104,7 +106,7 @@ if (!isset($params['global']) and $posts_parent_page != false and $posts_parent_
 }
 
 if (isset($params['is_shop']) and $params['is_shop'] == 'y') {
-$add_post_q .= ' subtype="product" is_shop=y ';
+$add_post_q .= ' content_type="product"   ';
 } else {
 $add_post_q .= '  ';
 }
@@ -215,6 +217,7 @@ mw.on.hashParam("action", function () {
 
 </script>
 
+ 
 <div class="post-settings-holder">
 	<?php   if (isset($params['global'])) { ?>
 		<a href="javascript:;"
@@ -246,8 +249,7 @@ mw.on.hashParam("action", function () {
 	</div>
     <div class="mw-ui-box mw-ui-box-content">
 	<div class="tab" style="display: block">
-    
-		<module type="content/manager"  <?php print $add_post_q ?> no_page_edit="true" id="mw_posts_manage_live_edit" no_toolbar="true" />
+ 		<module type="content/manager"  <?php print $add_post_q ?> no_page_edit="true" id="mw_posts_manage_live_edit" no_toolbar="true" />
 	</div>
 	<div class="tab" style="display:none">
 

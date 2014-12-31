@@ -1,4 +1,4 @@
-<?php exit('this is old file and will be removed'); ?><link type="text/css" rel="stylesheet" media="all" href="<?php print MW_INCLUDES_URL; ?>css/ui.css"/>
+<?php exit('this is old file and will be removed'); ?><link type="text/css" rel="stylesheet" media="all" href="<?php print mw_includes_url(); ?>css/ui.css"/>
 <style type="text/css">
 #le_create_content_sidebar {
 	width: 10%;
@@ -52,11 +52,11 @@
 	padding: 10px 20px 10px 0;
 	cursor: pointer;
 	display: inline-block;
- background: url(<?php print INCLUDES_URL;
+ background: url(<?php print mw_includes_url();
 ?>img/acfle_title_arr.png) no-repeat right center;
 }
 .acfle_layouts_browser_template h2.active {
- background: url(<?php print INCLUDES_URL;
+ background: url(<?php print mw_includes_url();
 ?>img/acfle_title_arr_active.png) no-repeat right center;
 }
 .acfle_layouts_browser_template {
@@ -202,7 +202,7 @@
 		<div class="mw-ui-col-container">
 			<h1>Add page</h1>
 			<?php
-$templates= mw('template')->site_templates();
+$templates= mw()->template->site_templates();
 
 
 
@@ -228,7 +228,7 @@ $templates= mw('template')->site_templates();
 					<?php
 	$layout_options = array();
 	$layout_options ['site_template'] = $template['dir_name'];
-	$layouts = mw('layouts')->get_all($layout_options);
+	$layouts = mw()->layouts_manager->get_all($layout_options);
 	
 	 if(!empty($layouts)): ?>
 					<?php $i=0;

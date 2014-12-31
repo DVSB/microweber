@@ -1,5 +1,5 @@
 <script type="text/javascript">
-<?php include_once( MW_INCLUDES_DIR . 'api/treerenderer.php'); ?>
+<?php include_once( mw_includes_path() . 'api/treerenderer.php'); ?>
 </script>
 <?php 
 
@@ -31,11 +31,11 @@ if (!isset($params['for'])) {
 }
 
 
-if (!isset($params['rel'])) {
+if (!isset($params['rel_type'])) {
 	$for = 'content';
 
 } else {
-	$for = $params['rel'];
+	$for = $params['rel_type'];
 }
 
 $is_shop = '';
@@ -44,7 +44,7 @@ $active_cats = array();
 if(isset($params['data-subtype']) and $params['data-subtype'] == 'product'){
 	$params['is_shop'] = 'y';
 } else {
- 	//$params['is_shop'] = 'n';
+ 	//$params['is_shop'] = 0;
 }
 
 
@@ -74,18 +74,17 @@ $cats_str = array();
 $cats_ids = array();
 $cats__parents = array();
 $is_ex1 = array();
-$for = mw('db')->assoc_table_name($for);
+$for = mw()->database_manager->assoc_table_name($for);
 
 
 
 if (isset($params['is_shop']) and trim($params['is_shop']) =='y') {
-  $is_ex = get_content('content_type=page&subtype=dynamic&is_shop=y&limit=100');
+  $is_ex = get_content('parent=0&content_type=page&is_shop=1&limit=1000');
+
 } else {
-  $is_ex = get_content('parent=0&content_type=page&is_shop=n&limit=100');
-
-
+	  $is_ex = get_content('content_type=page&is_shop=0&limit=1000');
 }
-
+ 
 if(is_array($is_ex)){
 	foreach ($is_ex as $item) {
 		$cats__parents[] = $item['id'];
@@ -114,7 +113,7 @@ $tree['parent'] = '0';
 
 if (isset($orig_params['is_shop']) and trim($orig_params['is_shop']) == 'y') {
 
-	$tree['is_shop'] = 'y';
+	$tree['is_shop'] = 1;
 	$tree['parent'] = 'any';
 
 
@@ -165,20 +164,25 @@ $tree['active_code'] = 'checked="checked" ';
 
 $tree['link'] = "<label class='mw-ui-check'><input type='radio' {$input_name}  {active_code} value='{id}'   class='mw-ui-check-input-check' ><span></span><span>{title}</span></label>";
 $tree['categores_link'] = "<label class='mw-ui-check'><input {$input_type_cats}  {$input_name_cats}   {active_code} value='{id}'   class='mw-ui-check-input-sel' ><span></span><span>{title}</span></label>";
-
+ 
 if (isset($params['is_shop']) and trim($params['is_shop']) =='y') {
  } else {
-$tree['is_shop'] = 'n';
+$tree['is_shop'] = 0;
 }
 if(isset($tree['is_shop'] )){
 
 	unset($tree['is_shop'] );
 }
+ 
+if(isset($params['content_type']) and $params['content_type'] == 'product'){
 
+	$tree['is_shop'] = 1;
+}
 if(isset($params['subtype']) and $params['subtype'] == 'product'){
 
-	$tree['is_shop'] = 'y';
+	$tree['is_shop'] = 1;
 }
+
 if(isset($params['subtype']) and $params['subtype'] == 'post'){
    $tree['subtype'] = 'dynamic';
    if(isset($tree['is_shop'] )){
@@ -200,14 +204,15 @@ if (isset($params['categories_removed_ids'])) {
 	 
 unset($tree['subtype']);
 }
-  
+     $tree['is_active'] = 1;
 pages_tree($tree);
 ?>
 <?php endif; ?>
 <?php  if(isset($params['include_global_categories']) and $params['include_global_categories'] == true  and isset($params['include_global_categories'])){
 
 	$str0 = 'table=categories&limit=1000&data_type=category&' . 'parent_id=0&rel_id=0&rel=content';
-	$fors = get($str0);
+ 
+	$fors = db_get($str0);
 
 	if ($fors != false and is_array($fors) and !empty($fors)) {
 		foreach ($fors as $cat) {

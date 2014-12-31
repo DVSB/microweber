@@ -10,7 +10,7 @@
  */
 
 
-namespace Microweber\admin\developer_tools\template_exporter;
+namespace admin\developer_tools\template_exporter;
 
 
 use ZipArchive;
@@ -65,8 +65,6 @@ class Worker
     {
 
 
-
-
         if (!defined('USER_IP')) {
             if (isset($_SERVER["REMOTE_ADDR"])) {
                 define("USER_IP", $_SERVER["REMOTE_ADDR"]);
@@ -77,38 +75,32 @@ class Worker
         }
 
 
-
-
         if (is_object($app)) {
             $this->app = $app;
         } else {
-            $this->app = \Microweber\Application::getInstance();
+            $this->app = mw();
         }
-
-
 
 
     }
 
- 
 
     static function log_bg_action($back_log_action)
     {
 
         if ($back_log_action == false) {
-            mw()->log->delete("is_system=y&rel=export&user_ip=" . USER_IP);
+            mw()->log_manager->delete("is_system=y&rel_type=export&user_ip=" . USER_IP);
         } else {
-            $check = mw()->log->get("order_by=created_on desc&one=true&is_system=y&created_on=[mt]30 min ago&field=action&rel=export&user_ip=" . USER_IP);
+            $check = mw()->log_manager->get("order_by=created_at desc&one=true&is_system=y&created_at=[mt]30 min ago&field=action&rel_type=export&user_ip=" . USER_IP);
 
             if (is_array($check) and isset($check['id'])) {
-                mw()->log->save("is_system=y&field=action&rel=export&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
+                mw()->log_manager->save("is_system=y&field=action&rel_type=export&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
             } else {
-                mw()->log->save("is_system=y&field=action&rel=export&value=" . $back_log_action . "&user_ip=" . USER_IP);
+                mw()->log_manager->save("is_system=y&field=action&rel_type=export&value=" . $back_log_action . "&user_ip=" . USER_IP);
             }
         }
 
     }
-
 
 
     function exec_create_full()
@@ -140,10 +132,10 @@ class Worker
         $here = $this->get_bakup_location();
         $filename = $here . 'full_export_' . date("Y-M-d-His") . '_' . uniqid() . '' . '.zip';
 
-        $userfiles_folder = MW_USERFILES;
+        $userfiles_folder = userfiles_path();
 
         $locations = array();
-        $locations[] = MW_USERFILES;
+        $locations[] = userfiles_path();
         //$locations[] = $filename2;
         $fileTime = date("D, d M Y H:i:s T");
 
@@ -171,7 +163,7 @@ class Worker
         $this->log_action($back_log_action);
 
 
-        $zip->addDirectoryContent(MW_USERFILES, '', true);
+        $zip->addDirectoryContent(userfiles_path(), '', true);
         $back_log_action = "Adding userfiles to zip";
         $this->log_action($back_log_action);
 
@@ -184,7 +176,7 @@ class Worker
         $this->log_action($back_log_action);
 
         sleep(5);
-        $back_log_action = "reload";
+        $back_log_action = "rel_typeoad";
         $this->log_action($back_log_action);
 
         sleep(5);
@@ -193,8 +185,6 @@ class Worker
 
 
     }
-
-
 
 
     function copyr($source, $dest)
@@ -286,16 +276,15 @@ class Worker
         $cache_id_loc = 'export_progress';
         $cache_state_id = 'export_zip_state';
 
-        $cache_content = $this->app->cache->get($cache_id, 'export');
-        $cache_lock = $this->app->cache->get($cache_id_loc, 'export');
-        $cache_state = $this->app->cache->get($cache_state_id, 'export', 30);
-
+        $cache_content = $this->app->cache_manager->get($cache_id, 'export');
+        $cache_lock = $this->app->cache_manager->get($cache_id_loc, 'export');
+        $cache_state = $this->app->cache_manager->get($cache_state_id, 'export', 30);
 
 
         $time = time();
         $here = $this->get_bakup_location();
 
-        session_write_close();
+        //session_write_close();
 
         if ($cache_state == 'opened') {
 
@@ -303,10 +292,9 @@ class Worker
         }
 
 
-
         if ($cache_content == false or empty($cache_content)) {
-            $this->app->cache->save(false, $cache_id_loc, 'export');
-            $this->app->cache->save(false, $cache_id, 'export');
+            $this->app->cache_manager->save(false, $cache_id_loc, 'export');
+            $this->app->cache_manager->save(false, $cache_id, 'export');
 
 
             return true;
@@ -325,7 +313,7 @@ class Worker
                 $cache_lock['files_count'] = count($cache_content);
                 $cache_lock['time'] = $time;
                 $cache_lock['filename'] = $filename;
-                $this->app->cache->save($cache_lock, $cache_id_loc, 'export');
+                $this->app->cache_manager->save($cache_lock, $cache_id_loc, 'export');
                 // return false;
             } else {
                 if (isset($cache_lock['filename'])) {
@@ -356,14 +344,14 @@ class Worker
             if (is_array($export_actions)) {
                 $i = 0;
 
-                $this->app->cache->save($filename, $cache_id_loc, 'export');
+                $this->app->cache_manager->save($filename, $cache_id_loc, 'export');
 
 
                 if (!$mw_export_zip_obj->open($filename, ZIPARCHIVE::CREATE)) {
                     $zip_opened = 1;
                     return false;
                 }
-                $this->app->cache->save('opened', $cache_state_id, 'export');
+                $this->app->cache_manager->save('opened', $cache_state_id, 'export');
 
                 $limit_per_turn = 20;
 
@@ -381,7 +369,7 @@ class Worker
                                 $mw_export_zip_obj->close();
                             }
                         }
-                        $this->app->cache->save('closed', $cache_state_id, 'export');
+                        $this->app->cache_manager->save('closed', $cache_state_id, 'export');
                     } else {
 
                         $cache_lock['processed']++;
@@ -397,14 +385,14 @@ class Worker
                         $back_log_action = "Progress  {$precent}% ({$cache_lock['processed']}/{$cache_lock['files_count']}) <br><small>" . basename($item) . "</small>";
                         $this->log_action($back_log_action);
 
-                        $this->app->cache->save($cache_lock, $cache_id_loc, 'export');
+                        $this->app->cache_manager->save($cache_lock, $cache_id_loc, 'export');
 
 
                         if ($item == 'make_db_export') {
 
                             $limit_per_turn = 1;
                             $mw_export_zip_obj->close();
-                            $this->app->cache->save('closed', $cache_state_id, 'export');
+                            $this->app->cache_manager->save('closed', $cache_state_id, 'export');
 
 
                             $db_file = $this->create($bak_fn . '.sql');
@@ -414,7 +402,7 @@ class Worker
                                 $zip_opened = 1;
                                 return false;
                             }
-                            $this->app->cache->save('opened', $cache_state_id, 'export');
+                            $this->app->cache_manager->save('opened', $cache_state_id, 'export');
 
 
                             if (isset($db_file['filename'])) {
@@ -428,21 +416,21 @@ class Worker
                                 }
                             }
                         } else {
-                            $relative_loc = str_replace(MW_USERFILES, '', $item);
+                            $rel_typeative_loc = str_replace(userfiles_path(), '', $item);
 
 
                             $new_export_actions = array();
 
 
                             if (is_dir($item)) {
-                                $mw_export_zip_obj->addEmptyDir($relative_loc);
+                                $mw_export_zip_obj->addEmptyDir($rel_typeative_loc);
                             } elseif (is_file($item)) {
                                 // d($item);
-                                //$relative_loc_dn = dirname($relative_loc);
+                                //$rel_typeative_loc_dn = dirname($rel_typeative_loc);
 
-                                //$mw_export_zip_obj->addFromString($relative_loc, file_get_contents($item));
+                                //$mw_export_zip_obj->addFromString($rel_typeative_loc, file_get_contents($item));
 
-                                $mw_export_zip_obj->addFile($item, $relative_loc);
+                                $mw_export_zip_obj->addFile($item, $rel_typeative_loc);
 
                             }
 
@@ -456,16 +444,16 @@ class Worker
                         if (isset($new_export_actions) and !empty($new_export_actions)) {
                             $export_actions = array_merge($export_actions, $new_export_actions);
                             array_unique($export_actions);
-                            $this->app->cache->save($export_actions, $cache_id, 'export');
+                            $this->app->cache_manager->save($export_actions, $cache_id, 'export');
 
                         } else {
-                            $this->app->cache->save($export_actions, $cache_id, 'export');
+                            $this->app->cache_manager->save($export_actions, $cache_id, 'export');
 
                         }
                         //  d($export_actions[$key]);
 
                         if (empty($export_actions)) {
-                            $this->app->cache->save(false, $cache_id, 'export');
+                            $this->app->cache_manager->save(false, $cache_id, 'export');
 
                         }
 
@@ -474,13 +462,16 @@ class Worker
                 }
 
                 $mw_export_zip_obj->close();
-                $this->app->cache->save('closed', $cache_state_id, 'export');
+                $this->app->cache_manager->save('closed', $cache_state_id, 'export');
             }
         }
 
-        // $this->app->cache->save(false, $cache_id_loc, 'export');
+        // $this->app->cache_manager->save(false, $cache_id_loc, 'export');
         if (empty($export_actions)) {
-            $this->app->cache->save(false, $cache_id, 'export');
+
+            $this->log_action('done');
+
+            $this->app->cache_manager->save(false, $cache_id, 'export');
 
         }
         return $cache_content;
@@ -503,14 +494,11 @@ class Worker
             only_admin_access();
 
         }
-        $temp_db = $db = $this->app->config('db');
+        $temp_db = false;;
 
         // Settings
         $table = '*';
-        $host = $DBhost = $db['host'];
-        $user = $DBuser = $db['user'];
-        $pass = $DBpass = $db['pass'];
-        $name = $DBName = $db['dbname'];
+
 
         // Set the suffix of the export filename
         if ($table == '*') {
@@ -563,20 +551,16 @@ class Worker
             file_put_contents($hta, 'Deny from all');
         }
 
-        $head = "/* Microweber database export exported on: " . date('l jS \of F Y h:i:s A') . " */ \n";
-        $head .= "/* MW_TABLE_PREFIX: " . MW_TABLE_PREFIX . " */ \n\n\n";
+        $head = "/* Microweber database exported on: " . date('l jS \of F Y h:i:s A') . " */ \n";
+        $head .= "/* get_table_prefix(): " . get_table_prefix() . " */ \n\n\n";
         file_put_contents($sql_bak_file, $head);
         $return = "";
         $tables = '*';
-        // Get all of the tables
-        if ($tables == '*') {
+         if ($tables == '*') {
             $tables = array();
-            //$result = mysql_query('SHOW TABLES');
-            $qs = 'SHOW TABLES';
-            $result = mw('db')->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
-            //while ($row = mysql_fetch_row($result)) {
-            //	$tables[] = $row[0];
-            //}
+             $qs = 'SHOW TABLES';
+            $result = mw()->database_manager->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
+
             if (!empty($result)) {
                 foreach ($result as $item) {
                     $item_vals = (array_values($item));
@@ -597,35 +581,35 @@ class Worker
         foreach ($tables as $table) {
             $is_cms_table = false;
 
-            if (MW_TABLE_PREFIX == '') {
+            if (get_table_prefix() == '') {
                 $is_cms_table = 1;
-            } elseif (stristr($table, MW_TABLE_PREFIX)) {
+            } elseif (stristr($table, get_table_prefix())) {
                 $is_cms_table = 1;
             }
 
-            if ($table == MW_TABLE_PREFIX . 'users') {
+            if ($table == get_table_prefix() . 'users') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'content_fields_drafts') {
+            } else if ($table == get_table_prefix() . 'content_fields_drafts') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'modules') {
+            } else if ($table == get_table_prefix() . 'modules') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'elements') {
+            } else if ($table == get_table_prefix() . 'elements') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'system_licenses') {
+            } else if ($table == get_table_prefix() . 'system_licenses') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'stats_users_online') {
+            } else if ($table == get_table_prefix() . 'stats_users_online') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'rating') {
+            } else if ($table == get_table_prefix() . 'rating') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'log') {
+            } else if ($table == get_table_prefix() . 'log') {
                 $is_cms_table = false;
-            } else if ($table == MW_TABLE_PREFIX . 'countries') {
+            } else if ($table == get_table_prefix() . 'countries') {
                 $is_cms_table = false;
             }
 
-            $is_the_table_empty =  'SELECT count(*) as qty FROM ' . $table;
-            $is_the_table_empty = mw('db')->query($is_the_table_empty, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
-            if(!isset($is_the_table_empty[0]) or !isset($is_the_table_empty[0]['qty']) or $is_the_table_empty[0]['qty'] == 0){
+            $is_the_table_empty = 'SELECT count(*) as qty FROM ' . $table;
+            $is_the_table_empty = mw()->database_manager->query($is_the_table_empty, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
+            if (!isset($is_the_table_empty[0]) or !isset($is_the_table_empty[0]['qty']) or $is_the_table_empty[0]['qty'] == 0) {
                 $is_cms_table = false;
             }
 
@@ -636,48 +620,32 @@ class Worker
                 //$result = mysql_query('SELECT * FROM ' . $table);
                 $qs = 'SELECT * FROM ' . $table;
 
-                if ($table == MW_TABLE_PREFIX . 'categories_items' or $table == MW_TABLE_PREFIX . 'categories') {
-                    $qs = 'SELECT * FROM ' . $table . " where rel='content' ";
+                if ($table == get_table_prefix() . 'categories_items' or $table == get_table_prefix() . 'categories') {
+                    $qs = 'SELECT * FROM ' . $table . " where rel_type='content' ";
                 } else {
                     $qs = 'SELECT * FROM ' . $table;
                 }
 
 
-                $result = mw('db')->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
+                $result = mw()->database_manager->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
                 $num_fields = count($result[0]);
-                //$num_fields = mysql_num_fields($result);
-                $table_without_prefix = $this->prefix_placeholder . str_ireplace(MW_TABLE_PREFIX, "", $table);
-                // First part of the output - remove the table
-                //$return .= 'DROP TABLE IF EXISTS ' . $table_without_prefix . $this -> file_q_sep . "\n\n\n";
-               // $return = 'DROP TABLE IF EXISTS ' . $table_without_prefix . $this->file_q_sep . "\n\n\n";
-               // $this->append_string_to_file($sql_bak_file, $return);
 
-                // Second part of the output - create table
-//				$res_ch = mysql_query('SHOW CREATE TABLE ' . $table);
-//				if ($res_ch == false) {
-//					$err = mysql_error();
-//					if ($err != false) {
-//						return array('error' => 'Query failed: ' . $err);
-//					}
-//
-//				}
-//				$row2 = mysql_fetch_row($res_ch);
+                $table_without_prefix = $this->prefix_placeholder . str_ireplace(get_table_prefix(), "", $table);
+
 
 
                 $qs = 'SHOW CREATE TABLE ' . $table;
-                $res_ch = mw('db')->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
+                $res_ch = mw()->database_manager->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
                 $row2 = array_values($res_ch[0]);
 
 
-                $create_table_without_prefix = str_ireplace(MW_TABLE_PREFIX, $this->prefix_placeholder, $row2[1]);
+                $create_table_without_prefix = str_ireplace(get_table_prefix(), $this->prefix_placeholder, $row2[1]);
 
-                //$return .= "\n\n" . $create_table_without_prefix . $this -> file_q_sep . "\n\n\n";
-                $create_table_without_prefix = str_ireplace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS', $create_table_without_prefix);
+                 $create_table_without_prefix = str_ireplace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS', $create_table_without_prefix);
                 $return = "\n\n" . $create_table_without_prefix . $this->file_q_sep . "\n\n\n";
 
 
-               // $return = "\n\n" . $create_table_without_prefix . $this->file_q_sep . "\n\n\n";
-                $this->append_string_to_file($sql_bak_file, $return);
+                 $this->append_string_to_file($sql_bak_file, $return);
                 // Third part of the output - insert values into new table
                 //for ($i = 0; $i < $num_fields; $i++) {
 
@@ -704,7 +672,6 @@ class Worker
                     }
 
 
-
                 }
                 $return = "\n\n\n";
                 $this->append_string_to_file($sql_bak_file, $return);
@@ -714,7 +681,7 @@ class Worker
         $this->log_action(false);
         $back_log_action = "Saving to file " . basename($filess);
         $this->log_action($back_log_action);
-   
+
         $end = microtime_float();
         $end = round($end - $start, 3);
         $this->log_action(false);
@@ -733,7 +700,6 @@ class Worker
     }
 
 
-
     function get_bakup_location()
     {
 
@@ -748,7 +714,7 @@ class Worker
         if ($loc != false) {
             return $loc;
         }
-        $here = MW_USERFILES . "export" . DS;
+        $here = userfiles_path() . "export" . DS;
 
         if (!is_dir($here)) {
             mkdir_recursive($here);
@@ -759,9 +725,9 @@ class Worker
             }
         }
 
-        $here = MW_USERFILES . "export" . DS . MW_TABLE_PREFIX . DS;
+        $here = userfiles_path() . "export" . DS . get_table_prefix() . DS;
 
-          if (!is_dir($here)) {
+        if (!is_dir($here)) {
             mkdir_recursive($here);
         }
 
@@ -794,11 +760,11 @@ class Worker
         $export_actions = array();
         $export_actions[] = 'make_db_export';
 
-        $userfiles_folder = MW_USERFILES;
-        $media_folder = MW_MEDIA_DIR;
+        $userfiles_folder = userfiles_path();
+        $media_folder = media_base_path();
 
 
-        $all_images = $this->app->media->get('limit=1000000');
+        $all_images = $this->app->media_manager->get('limit=1000000');
 
         if (!empty($all_images)) {
             foreach ($all_images as $image) {
@@ -811,7 +777,7 @@ class Worker
 
             }
         }
- 
+
 
         $host = (parse_url(site_url()));
 
@@ -823,10 +789,8 @@ class Worker
         }
 
 
-
-
-        $userfiles_folder_uploaded = $media_folder .DS.$host_dir . DS . 'uploaded' . DS;
-        $userfiles_folder_uploaded = $media_folder .DS.$host_dir . DS ;
+        $userfiles_folder_uploaded = $media_folder . DS . $host_dir . DS . 'uploaded' . DS;
+        $userfiles_folder_uploaded = $media_folder . DS . $host_dir . DS;
         $userfiles_folder_uploaded = \normalize_path($userfiles_folder_uploaded);
         $folders = \rglob($userfiles_folder_uploaded . '*', GLOB_NOSORT);
 
@@ -841,7 +805,7 @@ class Worker
             }
         }
 
-        $cust_css_dir = $media_folder .DS. 'content' . DS;
+        $cust_css_dir = $media_folder . DS . 'content' . DS;
         if (is_dir($cust_css_dir)) {
             $more_folders = \rglob($cust_css_dir . '*', GLOB_NOSORT);
             if (!empty($more_folders)) {
@@ -862,7 +826,7 @@ class Worker
             $text_files = array();
             foreach ($folders as $fold) {
                 if (!stristr($fold, 'export')) {
-                    if (stristr($fold, '.php') or stristr($fold, '.js')  or stristr($fold, '.css')) {
+                    if (stristr($fold, '.php') or stristr($fold, '.js') or stristr($fold, '.css')) {
                         $text_files[] = $fold;
                     } else {
                         $export_actions[] = $fold;
@@ -879,16 +843,13 @@ class Worker
 
         $cache_state_id = 'export_zip_state';
 
-        $this->app->cache->save($export_actions, $cache_id, 'export');
-        $this->app->cache->save(false, $cache_id_loc, 'export');
-        $this->app->cache->save(false, $cache_state_id, 'export');
+        $this->app->cache_manager->save($export_actions, $cache_id, 'export');
+        $this->app->cache_manager->save(false, $cache_id_loc, 'export');
+        $this->app->cache_manager->save(false, $cache_state_id, 'export');
 
         if (!defined('MW_NO_SESSION')) {
             define('MW_NO_SESSION', 1);
         }
-
-
-
 
 
     }
@@ -897,18 +858,18 @@ class Worker
     function log_action($back_log_action)
     {
 
-        if (defined('MW_IS_INSTALLED') and MW_IS_INSTALLED == true) {
+        if (mw_is_installed() == true) {
 
 
             if ($back_log_action == false) {
-                $this->app->log->delete("is_system=y&rel=export&user_ip=" . USER_IP);
+                $this->app->log_manager->delete("is_system=y&rel_type=export&user_ip=" . USER_IP);
             } else {
-                $check = $this->app->log->get("order_by=created_on desc&one=true&is_system=y&created_on=[mt]30 min ago&field=action&rel=export&user_ip=" . USER_IP);
+                $check = $this->app->log_manager->get("order_by=created_at desc&one=true&is_system=y&created_at=[mt]30 min ago&field=action&rel_type=export&user_ip=" . USER_IP);
 
                 if (is_array($check) and isset($check['id'])) {
-                    $this->app->log->save("is_system=y&field=action&rel=export&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
+                    $this->app->log_manager->save("is_system=y&field=action&rel_type=export&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
                 } else {
-                    $this->app->log->save("is_system=y&field=action&rel=export&value=" . $back_log_action . "&user_ip=" . USER_IP);
+                    $this->app->log_manager->save("is_system=y&field=action&rel_type=export&value=" . $back_log_action . "&user_ip=" . USER_IP);
                 }
             }
         }
@@ -974,8 +935,7 @@ class Worker
                     $bak = array();
                     $bak['filename'] = basename($file);
                     $bak['date'] = $date;
-                    $bak['time'] = str_replace('_', ':', $time);
-                    ;
+                    $bak['time'] = str_replace('_', ':', $time);;
                     $bak['size'] = filesize($file);
 
                     $exports[] = $bak;

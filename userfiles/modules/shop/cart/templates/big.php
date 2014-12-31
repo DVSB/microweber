@@ -65,7 +65,7 @@ description: Full width cart template
     </tbody>
   </table>
 
-   <?php  $shipping_options =  api('shop/shipping/shipping_api/get_active'); ?>
+   <?php  $shipping_options =  mw('shop\shipping\shipping_api')->get_active(); ?>
 	<?php
 	
 	$show_shipping_info =  get_option('show_shipping', $params['id']);
@@ -123,7 +123,7 @@ description: Full width cart template
             <tr>
                <td></td>
                <td><label><?php _e("Total Price"); ?>:</label></td>
-               <td  class="cell-shipping-total"> <span class="total_cost"><?php print currency_format($total + intval(mw('user')->session_get('shipping_cost'))); ?></span></td>
+               <td  class="cell-shipping-total"> <span class="total_cost"><?php print currency_format($total + intval(mw()->user_manager->session_get('shipping_cost'))); ?></span></td>
             </tr>
         </tbody>
     </table>

@@ -1,8 +1,18 @@
 <?php
 
 if (!defined("MODULE_DB_USERS_ONLINE")) {
-    define('MODULE_DB_USERS_ONLINE', MW_TABLE_PREFIX . 'stats_users_online');
+    define('MODULE_DB_USERS_ONLINE',  'stats_users_online');
 }
+if (!defined('MW_USER_IP')) {
+    if (isset($_SERVER["REMOTE_ADDR"])) {
+        define("MW_USER_IP", $_SERVER["REMOTE_ADDR"]);
+    } else {
+        define("MW_USER_IP", '127.0.0.1');
+
+    }
+}
+
+
 
 event_bind('mw.admin.dashboard.content', 'mw_print_stats_on_dashboard');
 
@@ -16,7 +26,10 @@ function mw_print_quick_stats_by_session($sid = false)
 
 function mw_print_stats_on_dashboard()
 {
-    $active = url_param('view');
+    
+ 
+	
+	$active = url_param('view');
     $cls = '';
     if ($active == 'shop') {
         //   $cls = ' class="active" ';
@@ -25,52 +38,7 @@ function mw_print_stats_on_dashboard()
   <module type="site_stats/admin" />';
     //print '<microweber module="site_stats" view="admin" />';
 }
-
-function mw_install_stats_module($config = false)
-{
-    return true;
-    if (is_admin() == false) {
-        return false;
-    }
-    mw('cache')->delete('stats');
-
-    $this_dir = dirname(__FILE__);
-
-    $sql = $this_dir . DS . 'install.sql';
-    $cfg = $this_dir . DS . 'config.php';
-
-    $is_installed = db_table_exist(MODULE_DB_USERS_ONLINE);
-    //d($is_installed);
-    if ($is_installed == false) {
-        $install = import_sql_from_file($sql);
-        //   mw('cache')->delete('db');
-
-        return true;
-    } elseif (is_array($is_installed) and !empty($is_installed)) {
-
-    } else {
-
-        return false;
-    }
-    //d($install);
-}
-
-function mw_uninstall_stats_module()
-{
-    if (is_admin() == false) {
-        return false;
-    }
-
-    $table = MODULE_DB_USERS_ONLINE;
-    $q = "DROP TABLE IF EXISTS {$table}; ";
-    //d($q);
-
-    mw('db')->q($q);
-    mw('cache')->delete('stats');
-    //  mw('cache')->delete('db');
-}
-
-//document_ready('stats_append_image');
+ 
 
 event_bind('frontend', 'stats_append_image');
 
@@ -92,23 +60,23 @@ function stats_image()
 {
     stats_insert();
 
-    $f = dirname(__FILE__);
-    $f = $f . DS . '1px.png';
-    $name = $f;
-    $fp = fopen($name, 'rb');
-
-    // send the right headers
-    header("Content-Type: image/png");
-    header("Content-Length: " . filesize($name));
-
-    // dump the picture and stop the script
-    fpassthru($fp);
-    exit;
+   // $f = dirname(__FILE__);
+//    $f = $f . DS . '1px.png';
+//    $name = $f;
+//    $fp = fopen($name, 'rb');
+//
+//    // send the right headers
+//    header("Content-Type: image/png");
+//    header("Content-Length: " . filesize($name));
+//
+//    // dump the picture and stop the script
+//    fpassthru($fp);
+//    exit;
 }
 
 function stats_insert()
 {
-
+	 
     if (!isset($_SERVER['HTTP_USER_AGENT']) or stristr($_SERVER['HTTP_USER_AGENT'], 'bot')) {
 
         return;
@@ -124,26 +92,31 @@ function stats_insert()
     $cookie_name_time = 'mw-time' . crc32($function_cache_id);
 
     $vc1 = 1;
-    if (isset($_SESSION[$cookie_name])) {
-        $vc1 = intval($_SESSION[$cookie_name]) + 1;
-        $_SESSION[$cookie_name] = $vc1;
+    if (mw()->session->get($cookie_name)) {
+        $vc1 = intval(mw()->session->get($cookie_name)) + 1;
+        mw()->session->set($cookie_name,$vc1);
 
-    } elseif (!isset($_SESSION[$cookie_name])) {
-        $_SESSION[$cookie_name] = $vc1;
+    } elseif (!mw()->session->get($cookie_name)) {
+        mw()->session->set($cookie_name,$vc1);
     }
-
+ 
 
     if (!isset($_COOKIE[$cookie_name_time])) {
         if (!headers_sent()) {
-            setcookie($cookie_name_time, $few_mins_ago_visit_date, time() + 90);
+            setcookie($cookie_name_time, $few_mins_ago_visit_date, time() + 30);
         }
+			
+			
         $data = array();
         $data['visit_date'] = date("Y-m-d");
         $data['visit_time'] = date("H:i:s");
-
+		$data['user_ip'] = $uip;
+ 
         $table = MODULE_DB_USERS_ONLINE;
-        $check = get("table={$table}&user_ip={$uip}&one=1&limit=1&visit_date=" . $data['visit_date']);
+        $check = db_get("table={$table}&user_ip={$uip}&one=1&limit=1&visit_date=" . $data['visit_date']);
+ 
         if ($check != false and is_array($check) and !empty($check) and isset($check['id'])) {
+			 
             $data['id'] = $check['id'];
             $vc = 0;
             if (isset($check['view_count'])) {
@@ -151,8 +124,8 @@ function stats_insert()
             }
 
             $vc1 = 0;
-            if (isset($_SESSION[$cookie_name])) {
-                $vc1 = intval($_SESSION[$cookie_name]);
+            if (mw()->session->get($cookie_name)) {
+                $vc1 = intval(mw()->session->get($cookie_name));
             }
             $vc = $vc + $vc1;
             $data['view_count'] = $vc;
@@ -168,15 +141,13 @@ function stats_insert()
         }
 
         $data['last_page'] = $lp;
-        $data['skip_cache'] = 1;
+      //$data['skip_cache'] = 1;
+	 
+      
+        $save = mw()->database->save($table, $data);
+        mw()->session->set($cookie_name,0);
 
-        mw_var('FORCE_SAVE', $table);
-        mw_var('apc_no_clear', 1);
-        $save = mw('db')->save($table, $data);
-        $_SESSION[$cookie_name] = 0;
-
-        mw_var('apc_no_clear', 0);
-        //	setcookie($cookie_name, 1);
+      
 
     }
     return true;
@@ -193,7 +164,7 @@ function stats_insert_cookie_based()
 
     $function_cache_id = __FUNCTION__ . crc32($function_cache_id);
 
-    //$cache_content = mw('cache')->get($function_cache_id, $cache_group = 'module_stats_users_online');
+    //$cache_content = mw()->cache_manager->get($function_cache_id, $cache_group = 'module_stats_users_online');
     //if (($cache_content) == '--false--') {
     //return false;
     //	}
@@ -206,12 +177,12 @@ function stats_insert_cookie_based()
     $few_mins_ago_visit_date = date("Y-m-d H:i:s");
     if (isset($_COOKIE[$cookie_name])) {
         $vc1 = intval($_COOKIE[$cookie_name]) + 1;
-        //	$_SESSION[$cookie_name] = $vc1;
+        //	mw()->session->get($cookie_name) = $vc1;
         setcookie($cookie_name, $vc1, time() + 99);
         //  return true;
     } elseif (!isset($_COOKIE[$cookie_name])) {
         setcookie($cookie_name, $vc1, time() + 99);
-        //$_SESSION[$cookie_name] = $vc1;
+        //mw()->session->get($cookie_name) = $vc1;
         // return true;
     }
 
@@ -225,7 +196,7 @@ function stats_insert_cookie_based()
         $data['visit_time'] = date("H:i:s", strtotime("now"));
 
         $table = MODULE_DB_USERS_ONLINE;
-        $check = get("no_cache=1&table={$table}&user_ip={$uip}&one=1&limit=1&visit_date=" . $data['visit_date']);
+        $check = db_get("no_cache=1&table={$table}&user_ip={$uip}&one=1&limit=1&visit_date=" . $data['visit_date']);
         if ($check != false and is_array($check) and !empty($check) and isset($check['id'])) {
             $data['id'] = $check['id'];
             $vc = 0;
@@ -247,13 +218,13 @@ function stats_insert_cookie_based()
         }
         $data['last_page'] = $lp;
         $data['skip_cache'] = 1;
-        if (isset($_SESSION) and !empty($_SESSION)) {
-            $data['session_id'] = session_id();
+        if (mw()->user_manager->session_id() and !(mw()->user_manager->session_all() == false)) {
+            $data['session_id'] = mw()->user_manager->session_id();
         }
         mw_var('FORCE_SAVE', $table);
         mw_var('apc_no_clear', 1);
-        $save = mw('db')->save($table, $data);
-        //	$_SESSION[$cookie_name] = 0;
+        $save = mw()->database->save($table, $data);
+        //	mw()->session->get($cookie_name) = 0;
         setcookie($cookie_name, 0, time() + 99);
 
         mw_var('apc_no_clear', 0);
@@ -266,7 +237,9 @@ function stats_insert_cookie_based()
 
 function get_visits_for_sid($sid)
 {
-    $table = MODULE_DB_USERS_ONLINE;
+    return;
+	
+	$table = MODULE_DB_USERS_ONLINE;
     $q = false;
     $results = false;
     $data = array();
@@ -281,14 +254,17 @@ function get_visits_for_sid($sid)
 
 function get_visits($range = 'daily')
 {
-    $table = MODULE_DB_USERS_ONLINE;
+    
+
+	
+	$table = mw()->database_manager->real_table_name(MODULE_DB_USERS_ONLINE);
     $q = false;
     $results = false;
     switch ($range) {
         case 'daily' :
             $ago = date("Y-m-d", strtotime("-1 month"));
             $q = "SELECT COUNT(*) AS unique_visits, SUM(view_count) AS total_visits, visit_date FROM $table WHERE visit_date > '$ago' GROUP BY visit_date  ";
-            $results = mw('db')->query($q);
+            $results = mw()->database_manager->query($q);
 
             break;
 
@@ -298,7 +274,7 @@ function get_visits($range = 'daily')
 
             $q = "SELECT COUNT(*) AS unique_visits, SUM(view_count) AS total_visits,visit_date, DATE_FORMAT(visit_date, '%x %V') AS weeks  FROM $table WHERE visit_date > '$ago' GROUP BY weeks  ";
 
-            $results = mw('db')->query($q);
+            $results = mw()->database_manager->query($q);
 
             break;
 
@@ -308,7 +284,7 @@ function get_visits($range = 'daily')
 
             $q = "SELECT COUNT(*) AS unique_visits, SUM(view_count) AS total_visits,visit_date, DATE_FORMAT(visit_date, '%x %m') AS months  FROM $table WHERE visit_date > '$ago' GROUP BY months  ";
 
-            $results = mw('db')->query($q);
+            $results = mw()->database_manager->query($q);
 
             break;
 
@@ -316,7 +292,7 @@ function get_visits($range = 'daily')
             $q = "SELECT * FROM $table ORDER BY visit_date DESC, visit_time DESC LIMIT 5  ";
 
 
-            $results = mw('db')->query($q);
+            $results = mw()->database_manager->query($q);
 
             break;
 
@@ -326,11 +302,11 @@ function get_visits($range = 'daily')
             $ago2 = date("Y-m-d", strtotime("now"));
             $total = 0;
             $q = "SELECT SUM(view_count) AS total_visits FROM $table  WHERE visit_date='$ago2' AND visit_time>'$ago'   ";
-            $results = mw('db')->query($q);
+            $results = mw()->database_manager->query($q);
             if (isset($results[0]) and isset($results[0]['total_visits'])) {
-                $mw_req_sec = mw('user')->session_get('stats_requests_num');
+                $mw_req_sec = mw()->user_manager->session_get('stats_requests_num');
                 $total = $results[0]['total_visits'];
-                mw('user')->session_set('stats_requests_num', $total);
+                mw()->user_manager->session_set('stats_requests_num', $total);
                 $results = intval($total) - intval($mw_req_sec);
             } else {
                 $results = false;
@@ -344,7 +320,7 @@ function get_visits($range = 'daily')
             $ago2 = date("Y-m-d", strtotime("now"));
             $q = "SELECT COUNT(*) AS users_online FROM $table WHERE visit_date='$ago2' AND visit_time>'$ago'    ";
 
-            $results = mw('db')->query($q);
+            $results = mw()->database_manager->query($q);
             if (is_array($results)) {
                 $results = intval($results[0]['users_online']);
             }

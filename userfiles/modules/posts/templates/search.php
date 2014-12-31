@@ -13,7 +13,7 @@ visible: no
 */
 ?>
 
-<script>mw.moduleCSS("<?php print MW_MODULES_URL; ?>posts/css/style.css"); </script>
+<script>mw.moduleCSS("<?php print modules_url(); ?>posts/css/style.css"); </script>
 
 <?php
 

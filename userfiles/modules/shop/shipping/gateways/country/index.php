@@ -2,19 +2,31 @@
 <?php  $rand = 'shipping_country_'.uniqid();
 
 
- $data = api('shop/shipping/gateways/country/shipping_to_country/get', "is_active=y");
- $data_disabled = api('shop/shipping/gateways/country/shipping_to_country/get', "is_active=n");
- $shipping_cost = api('shop/shipping/gateways/country/shipping_to_country/get_cost');
+ $data = mw('shop\shipping\gateways\country\shipping_to_country')->get("is_active=1");
+ 
+ 
+ 
+// $data = api('shop/shipping/gateways/country/shipping_to_country/get', "is_active=1");
+ 
+ 
+ 
+ $data_disabled = mw('shop\shipping\gateways\country\shipping_to_country')->get("is_active=0");
+ $shipping_cost = mw('shop\shipping\gateways\country\shipping_to_country')->get_cost(); 
  $shipping_cost = floatval($shipping_cost);
  $countries_used = array();
   $countries_all = array();
  if( $data == false){
 	 $data = array();
  }
+ 
+ 
+
+ 
+ 
   if(is_array($data)){
 	foreach($data as $key => $item){
 			if(trim(strtolower($item['shipping_country']))  == 'worldwide' ){
-				 $countries_all = mw('forms')->countries_list();
+				 $countries_all = mw()->forms_manager->countries_list();
 				 unset($data[$key]);
 				  if(is_array($countries_all)){
 
@@ -31,7 +43,7 @@
 
 }
 
-
+ 
 
  if(is_array($data)){
 	foreach($data as $key =>$item){

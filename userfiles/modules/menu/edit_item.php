@@ -28,14 +28,14 @@ if($id == 0){
 	} else {
 		$data['categories_id'] = $params['categories_id'];
 	}
-	$data['is_active'] = 'y';
+	$data['is_active'] = 1;
 	$data['position'] = '9999';
 	$data['url'] = '';
 	$data['title'] = '';
 //	$data['categories_id'] = '';
 } else {
 
-	$data = mw('content')->menu_item_get($id);
+	$data = mw()->menu_manager->menu_item_get($id);
 }
 if( $id != 0){
 //$data = menu_tree( $id);

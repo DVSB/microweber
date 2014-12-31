@@ -1,5 +1,8 @@
 <?php
-api_hook('shop/shipping/gateways/country/shipping_to_country/test', 'shop/shipping/gateways/country/shipping_to_country/test2');
+
+namespace shop\shipping\gateways\country;
+
+api_bind('shop/shipping/gateways/country/shipping_to_country/test', 'shop/shipping/gateways/country/shipping_to_country/test2');
 
 // print('shop/shipping/gateways/country/shipping_to_country/test'. 'shop/shipping/gateways/country/shipping_to_country/test2');
 api_expose('shop/shipping/gateways/country/shipping_to_country/save');
@@ -19,13 +22,13 @@ class shipping_to_country
     // to prevent external instantiation
     function __construct($app = false)
     {
-        $this->table = MW_TABLE_PREFIX . 'cart_shipping';
+        $this->table = 'cart_shipping';
         if (!is_object($this->app)) {
 
             if (is_object($app)) {
                 $this->app = $app;
             } else {
-                $this->app = \Microweber\Application::getInstance();
+                $this->app = mw();
             }
 
         }
@@ -35,13 +38,13 @@ class shipping_to_country
     function get_cost()
     {
 
-        // $defined_cost = $this->app->user->session_get('shipping_cost');
-        $shipping_country = $this->app->user->session_get('shipping_country');
+        // $defined_cost = $this->app->user_manager->session_get('shipping_cost');
+        $shipping_country = $this->app->user_manager->session_get('shipping_country');
         $defined_cost = 0;
-        $shipping_country = $this->get('one=1&is_active=y&shipping_country=' . $shipping_country);
+        $shipping_country = $this->get('one=1&is_active=1&shipping_country=' . $shipping_country);
 $is_worldwide = false;
 		 if ($shipping_country == false) {
-			  $shipping_country = $this->get('one=1&is_active=y&shipping_country=Worldwide');
+			  $shipping_country = $this->get('one=1&is_active=1&shipping_country=Worldwide');
 					if (is_array($shipping_country)) {
 					$is_worldwide = true;
 					 
@@ -50,16 +53,16 @@ $is_worldwide = false;
         if ($shipping_country == false) {
 
 
-            $shipping_country = $this->get('order_by=position asc&one=1&is_active=y');
+            $shipping_country = $this->get('order_by=position asc&one=1&is_active=1');
 
 
             //
         }
 
         if ($shipping_country == false) {
-            $this->app->user->session_set('shipping_country', 'none');
+            $this->app->user_manager->session_set('shipping_country', 'none');
 
-            $this->app->user->session_set('shipping_cost', 0);
+            $this->app->user_manager->session_set('shipping_cost', 0);
             return false;
         }
 
@@ -81,9 +84,9 @@ $is_worldwide = false;
             $total_shipping_weight = 0;
             $total_shipping_volume = 0;
 
-            $items_cart_count = $this->app->shop->cart_sum(false);
+            $items_cart_count = $this->app->shop_manager->cart_sum(false);
             if ($items_cart_count > 0) {
-                $items_items = $this->app->shop->get_cart();
+                $items_items = $this->app->shop_manager->get_cart();
                 if (!empty($items_items)) {
                     foreach ($items_items as $item) {
 
@@ -145,9 +148,9 @@ $is_worldwide = false;
                 $calc = floatval($shipping_country['shipping_price_per_item']);
                 $calc2 = 0;
 
-                $items_cart_count = $this->app->shop->cart_sum(false);
+                $items_cart_count = $this->app->shop_manager->cart_sum(false);
                 if ($items_cart_count > 0) {
-                    $items_items = $this->app->shop->get_cart();
+                    $items_items = $this->app->shop_manager->get_cart();
                     if (!empty($items_items)) {
                         foreach ($items_items as $item) {
                             $content_data = $item['content_data'];
@@ -180,7 +183,7 @@ $is_worldwide = false;
 
         }
 
-        $items_cart_amount = $this->app->shop->cart_sum();
+        $items_cart_amount = $this->app->shop_manager->cart_sum();
 
         if (isset($shipping_country['shipping_cost_above']) and intval($shipping_country['shipping_cost_above']) > 0) {
             $shipping_cost_above = floatval($shipping_country['shipping_cost_above']);
@@ -199,10 +202,10 @@ $is_worldwide = false;
 			}
         }
 if($is_worldwide == false){
-        $this->app->user->session_set('shipping_country', $shipping_country['shipping_country']);
+        $this->app->user_manager->session_set('shipping_country', $shipping_country['shipping_country']);
 } 
 
-        $this->app->user->session_set('shipping_cost', $defined_cost);
+        $this->app->user_manager->session_set('shipping_cost', $defined_cost);
 
         return $defined_cost;
     }
@@ -240,7 +243,7 @@ if($is_worldwide == false){
         }
 
 
-        $data = mw('db')->save($this->table, $data);
+        $data = mw()->database->save($this->table, $data);
         return ($data);
     }
 
@@ -256,7 +259,7 @@ if($is_worldwide == false){
         }
         $params['limit'] = 1000;
         // d($params);
-        return mw('db')->get($params);
+        return mw()->database->get($params);
 
     }
 
@@ -270,7 +273,7 @@ if($is_worldwide == false){
 
         if (isset($data['id'])) {
             $c_id = intval($data['id']);
-            mw('db')->delete_by_id($this->table, $c_id);
+            mw()->database_manager->delete_by_id($this->table, $c_id);
 
             //d($c_id);
         }
@@ -282,9 +285,9 @@ if($is_worldwide == false){
 
         if (isset($params['country'])) {
 			$is_worldwide = false;
-            $active = $this->get('one=1&is_active=y&shipping_country=' . $params['country']);
+            $active = $this->get('one=1&is_active=1&shipping_country=' . $params['country']);
             if (!is_array($active)) {
-                $active = $this->get('one=1&is_active=y&shipping_country=Worldwide');
+                $active = $this->get('one=1&is_active=1&shipping_country=Worldwide');
 				if (is_array($active)) {
 				$is_worldwide = true;
 				}
@@ -293,8 +296,11 @@ if($is_worldwide == false){
 				
 				if($is_worldwide  == true){
 					 $active['shipping_country'] = $params['country'];
- 				} 
-				$this->app->user->session_set('shipping_country', $active['shipping_country']);
+ 				}
+
+
+
+				$this->app->user_manager->session_set('shipping_country', $active['shipping_country']);
 			 
 				
 				
@@ -329,7 +335,7 @@ if($is_worldwide == false){
                     $i++;
                 }
 
-                $this->app->db->update_position_field($table, $indx);
+                $this->app->database_manager->update_position_field($table, $indx);
                 return true;
                 // d($indx);
             }

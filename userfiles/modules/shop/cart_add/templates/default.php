@@ -22,7 +22,7 @@ else{
 
 
 ?>
-<script>mw.moduleCSS("<?php print MW_MODULES_URL; ?>shop/cart_add/templates.css")</script>
+<script>mw.moduleCSS("<?php print modules_url(); ?>shop/cart_add/templates.css")</script>
 
 <script>
     _AddToCartModalContent = window._AddToCartModalContent || function(title){

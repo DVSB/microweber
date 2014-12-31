@@ -14,16 +14,16 @@ $config['version'] = 0.5;
 
 $config['tables'] = array();
 $fields_to_add = array();
-$fields_to_add[] = array('title', 'TEXT default NULL');
-$fields_to_add[] = array('item_type', 'varchar(33) default NULL');
-$fields_to_add[] = array('parent_id', 'int(11) default NULL');
-$fields_to_add[] = array('content_id', 'int(11) default NULL');
-$fields_to_add[] = array('categories_id', 'int(11) default NULL');
-$fields_to_add[] = array('position', 'int(11) default NULL');
-$fields_to_add[] = array('updated_on', 'datetime default NULL');
-$fields_to_add[] = array('created_on', 'datetime default NULL');
-$fields_to_add[] = array('is_active', "char(1) default 'y'");
-$fields_to_add[] = array('description', 'TEXT default NULL');
-$fields_to_add[] = array('url', 'TEXT default NULL');
+$fields_to_add[] = array('title', 'longText');
+$fields_to_add[] = array('item_type', 'string');
+$fields_to_add[] = array('parent_id', 'integer');
+$fields_to_add[] = array('content_id', 'integer');
+$fields_to_add[] = array('categories_id', 'integer');
+$fields_to_add[] = array('position', 'integer');
+$fields_to_add[] = array('updated_at', 'dateTime');
+$fields_to_add[] = array('created_at', 'dateTime');
+$fields_to_add[] = array('is_active', "integer");
+$fields_to_add[] = array('description', 'longText');
+$fields_to_add[] = array('url', 'longText');
 $config['tables']['menus'] = $fields_to_add;
 

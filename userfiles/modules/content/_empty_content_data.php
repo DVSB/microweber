@@ -11,10 +11,10 @@ $data['url'] = '';
 
 $data['thumbnail'] = '';
 
-$data['is_active'] = 'y';
-$data['is_home'] = 'n';
+$data['is_active'] = 1;
+$data['is_home'] = 0;
 
-$data['is_shop'] = 'n';
+$data['is_shop'] = 0;
 
 $data['require_login'] = 'n';
 
@@ -45,7 +45,7 @@ if (!isset($title_placeholder)) {
 if (isset($params['subtype'])) {
     $data['subtype'] = $params['subtype'];
     $title_placeholder = "New {$data['subtype']} title";
-    if ($params['subtype'] == 'product') {
+    if ($params['content_type'] == 'product') {
         $data['content_type'] = 'post';
         $data['subtype'] = 'product';
     } elseif ($params['subtype'] == 'post') {

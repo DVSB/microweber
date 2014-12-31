@@ -1,11 +1,11 @@
 <?php
 
 
-namespace Comments;
+namespace comments;
 
 
 if (!defined("MODULE_DB_COMMENTS")) {
-    define('MODULE_DB_COMMENTS', MW_TABLE_PREFIX . 'comments');
+    define('MODULE_DB_COMMENTS', 'comments');
 }
 
 class Api {
@@ -18,15 +18,15 @@ class Api {
             $params = $params2;
         }
         if (isset($params['content_id'])) {
-            $params['rel'] = 'content';
-            $params['rel_id'] = mw('db')->escape_string($params['content_id']);
+            $params['rel_type'] = 'content';
+            $params['rel_id'] = mw()->database_manager->escape_string($params['content_id']);
 
         }
 
         $table = MODULE_DB_COMMENTS;
         $params['table'] = $table;
 
-        $comments = \get($params);
+        $comments = db_get($params);
 
         if(is_array($comments)){
             $i = 0;
@@ -84,7 +84,7 @@ class Api {
                         break;
 
                     case 'delete' :
-                        $del = \mw('db')->delete_by_id($table, $id = intval($data['id']), $field_name = 'id');
+                        $del = mw()->database_manager->delete_by_id($table, $id = intval($data['id']), $field_name = 'id');
                         return $del;
                         break;
 
@@ -96,7 +96,7 @@ class Api {
             }
         } else {
 
-            if (!isset($data['rel'])) {
+            if (!isset($data['rel_type'])) {
                 return array('error' => 'Error: invalid data');
             }
             if (!isset($data['rel_id'])) {
@@ -110,7 +110,7 @@ class Api {
             if (!isset($data['captcha'])) {
                 return array('error' => 'Please enter the captcha answer!');
             } else {
-                $cap = mw('user')->session_get('captcha');
+                $cap = mw()->user_manager->session_get('captcha');
 
                 if ($cap == false) {
                     return array('error' => 'You must load a captcha first!');
@@ -129,7 +129,7 @@ class Api {
                 return array('error' => 'You must type your email or be logged in order to comment.');
             }
 
-            $data['from_url'] = mw('url')->current(1);
+            $data['from_url'] = mw()->url_manager->current(1);
 
         }
 
@@ -144,7 +144,7 @@ class Api {
 
         // d( $require_moderation);
 
-        $saved_data = \mw('db')->save($table, $data);
+        $saved_data = mw()->database->save($table, $data);
 
 
 
@@ -154,12 +154,12 @@ class Api {
 
             $notif = array();
             $notif['module'] = "comments";
-            $notif['rel'] = $data['rel'];
+            $notif['rel_type'] = $data['rel_type'];
             $notif['rel_id'] = $data['rel_id'];
             $notif['title'] = "You have new comment";
-            $notif['description'] = "New comment is posted on " . mw('url')->current(1);
+            $notif['description'] = "New comment is posted on " . mw()->url_manager->current(1);
             $notif['content'] = mw('format')->limit($data['comment_body'], 800);
-            mw('Microweber\Notifications')->save($notif);
+            mw()->notifications_manager->save($notif);
 
             $email_on_new_comment = get_option('email_on_new_comment', 'comments') == 'y';
             $email_on_new_comment_value = get_option('email_on_new_comment_value', 'comments');
@@ -167,7 +167,7 @@ class Api {
             if ($email_on_new_comment == true) {
                 $subject = "You have new comment";
                 $data2 = $data;
-                unset($data2['rel']);
+                unset($data2['rel_type']);
                 unset($data2['rel_id']);
                 $data3 = array();
                 foreach ($data2 as $key => $value) {
@@ -180,7 +180,7 @@ class Api {
                 }
 
 
-                $message = "Hi, <br/> You have new comment posted on " . mw('url')->current(1) . ' <br /> ';
+                $message = "Hi, <br/> You have new comment posted on " . mw()->url_manager->current(1) . ' <br /> ';
                 $message .= "IP:" . MW_USER_IP . ' <br /> ';
                 $message .=mw('format')->array_to_ul($data3);
                 \Microweber\email\Sender::send($email_on_new_comment_value, $subject, $message, 1);
@@ -213,9 +213,9 @@ class Api {
                     $upd['is_new'] = 'n';
 
                     $upd['id'] = $get_com['id'];
-                    $upd['rel'] = 'content';
-                    $upd['rel_id'] = mw('db')->escape_string($data['content_id']);
-                    \mw('db')->save($table, $upd);
+                    $upd['rel_type'] = 'content';
+                    $upd['rel_id'] = mw()->database_manager->escape_string($data['content_id']);
+                    mw()->database->save($table, $upd);
                 }
             }
             return $get_comm;

@@ -1,7 +1,7 @@
 <?php
 
-if (!isset($_SESSION) or empty($_SESSION)) {
-    session_start();
+if (!mw()->user_manager->session_id() or (mw()->user_manager->session_all() == false)) {
+    // //session_start();
 }
 $validate_token = false;
 if (!isset($_SERVER['HTTP_REFERER'])) {
@@ -13,13 +13,13 @@ if (!isset($_SERVER['HTTP_REFERER'])) {
 
 
 if (!is_admin()) {
-    $validate_token = mw()->user->csrf_validate($_GET);
+    $validate_token = mw()->user_manager->csrf_validate($_GET);
     if ($validate_token == false) {
         die('{"jsonrpc" : "2.0", "error" : {"code":98, "message": "You are not allowed to upload"}}');
     }
 
 
-    $is_ajax = mw()->url->is_ajax();
+    $is_ajax = mw()->url_manager->is_ajax();
     if ($is_ajax != false) {
         die('{"jsonrpc" : "2.0", "error" : {"code":99, "message": "You are not allowed to upload"}}');
     }
@@ -87,9 +87,9 @@ if (is_admin() != false) {
 
     if ($uid != 0) {
 
-        $user = mw('user')->get_by_id($uid);
+        $user = mw()->user_manager->get_by_id($uid);
 
-        if (!empty($user) and isset($user["is_active"]) and $user["is_active"] == 'y') {
+        if (!empty($user) and isset($user["is_active"]) and $user["is_active"] == 1) {
 
             $are_allowed = 'img';
             $_REQUEST["path"] = 'media/'.$host_dir.'user_uploads/user/' . DS . $user["id"] . DS;
@@ -103,9 +103,9 @@ if (is_admin() != false) {
 
 if ($allowed_to_upload == false) {
 
-    if (isset($_REQUEST["rel"]) and isset($_REQUEST["custom_field_id"]) and trim($_REQUEST["rel"]) != '' and trim($_REQUEST["rel"]) != 'false') {
+    if (isset($_REQUEST["rel_type"]) and isset($_REQUEST["custom_field_id"]) and trim($_REQUEST["rel_type"]) != '' and trim($_REQUEST["rel_type"]) != 'false') {
 
-        $cfid = mw('fields')->get_by_id(intval($_REQUEST["custom_field_id"]));
+        $cfid = mw()->fields_manager->get_by_id(intval($_REQUEST["custom_field_id"]));
         if ($cfid == false) {
             die('{"jsonrpc" : "2.0", "error" : {"code": 90, "message": "Custom field is not found"}}');
 
@@ -253,7 +253,7 @@ if ($allowed_to_upload == false) {
                                         die('{"jsonrpc" : "2.0", "error" : {"code":107, "message": "Please enter the captcha answer!"}}');
                                     }
                                 } else {
-                                    $cap = mw('user')->session_get('captcha');
+                                    $cap = mw()->user_manager->session_get('captcha');
                                     if ($cap == false) {
                                         die('{"jsonrpc" : "2.0", "error" : {"code":108, "message": "You must load a captcha first!"}}');
 
@@ -263,7 +263,7 @@ if ($allowed_to_upload == false) {
 
                                     } else {
                                         if (!isset($_REQUEST["path"])) {
-                                            $_REQUEST["path"] = 'media/'.$host_dir .'/user_uploads' . DS . $_REQUEST["rel"] . DS;
+                                            $_REQUEST["path"] = 'media/'.$host_dir .'/user_uploads' . DS . $_REQUEST["rel_type"] . DS;
                                         }
                                     }
                                 }
@@ -311,12 +311,12 @@ header("Pragma: no-cache");
 
 
 // Settings
-$target_path = MW_MEDIA_DIR . DS;
-$target_path = MW_MEDIA_DIR . DS . $host_dir . DS . 'uploaded' . DS;
+$target_path = media_base_path() . DS;
+$target_path = media_base_path() . DS . $host_dir . DS . 'uploaded' . DS;
 $target_path = normalize_path($target_path, 0);
 
 
-$path_restirct = MW_USERFILES; // the path the script should access
+$path_restirct = userfiles_path(); // the path the script should access
 if (isset($_REQUEST["path"]) and trim($_REQUEST["path"]) != '' and trim($_REQUEST["path"]) != 'false') {
     $path = urldecode($_REQUEST["path"]);
 
@@ -335,7 +335,7 @@ if (isset($_REQUEST["path"]) and trim($_REQUEST["path"]) != '' and trim($_REQUES
     $path = str_replace($path_restirct, '', $path);
 
 
-    $target_path = MW_USERFILES . DS . $path;
+    $target_path = userfiles_path() . DS . $path;
     $target_path = normalize_path($target_path, 1);
 }
 
@@ -401,14 +401,14 @@ if ($cleanupTargetDir && is_dir($targetDir) && ($dir = opendir($targetDir))) {
 }
 
 if (isset($_SERVER["CONTENT_LENGTH"]) and isset($_FILES['file'])) {
-    $filename_log = mw('url')->slug($fileName);
-    $check = mw('log')->get("one=true&no_cache=true&is_system=y&created_on=[mt]30 min ago&field=upload_size&rel=uploader&rel_id=" . $filename_log . "&user_ip=" . MW_USER_IP);
+    $filename_log = mw()->url_manager->slug($fileName);
+    $check = mw()->log_manager->get("one=true&no_cache=true&is_system=y&created_at=[mt]30 min ago&field=upload_size&rel=uploader&rel_id=" . $filename_log . "&user_ip=" . MW_USER_IP);
     $upl_size_log = $_SERVER["CONTENT_LENGTH"];
     if (is_array($check) and isset($check['id'])) {
         $upl_size_log = intval($upl_size_log) + intval($check['value']);
-        mw('log')->save("no_cache=true&is_system=y&field=upload_size&rel=uploader&rel_id=" . $filename_log . "&value=" . $upl_size_log . "&user_ip=" . MW_USER_IP . "&id=" . $check['id']);
+        mw()->log_manager->save("no_cache=true&is_system=y&field=upload_size&rel=uploader&rel_id=" . $filename_log . "&value=" . $upl_size_log . "&user_ip=" . MW_USER_IP . "&id=" . $check['id']);
     } else {
-        mw('log')->save("no_cache=true&is_system=y&field=upload_size&rel=uploader&rel_id=" . $filename_log . "&value=" . $upl_size_log . "&user_ip=" . MW_USER_IP);
+        mw()->log_manager->save("no_cache=true&is_system=y&field=upload_size&rel=uploader&rel_id=" . $filename_log . "&value=" . $upl_size_log . "&user_ip=" . MW_USER_IP);
     }
 }
 
@@ -480,14 +480,14 @@ if (isset($contentType)) {
 if (!$chunks || $chunk == $chunks - 1) {
     // Strip the temp .part suffix off
     rename("{$filePath}.part", $filePath);
-    mw('log')->delete("is_system=y&rel=uploader&created_on=[lt]30 min ago");
-    mw('log')->delete("is_system=y&rel=uploader&session_id=" . session_id());
+    mw()->log_manager->delete("is_system=y&rel=uploader&created_at=[lt]30 min ago");
+    mw()->log_manager->delete("is_system=y&rel=uploader&session_id=" . mw()->user_manager->session_id());
 
 }
 $f_name = explode(DS, $filePath);
 
 $rerturn = array();
-$rerturn['src'] = mw('url')->link_to_file($filePath);
+$rerturn['src'] = mw()->url_manager->link_to_file($filePath);
 $rerturn['name'] = end($f_name);
 
 if (isset($upl_size_log) and $upl_size_log > 0) {
@@ -497,8 +497,8 @@ if (isset($upl_size_log) and $upl_size_log > 0) {
 
 
 print json_encode($rerturn);
-if (isset($_SESSION) and !empty($_SESSION)) {
-    @session_write_close();
+if (mw()->user_manager->session_id() and !(mw()->user_manager->session_all() == false)) {
+    // @//session_write_close();
 
 }
 

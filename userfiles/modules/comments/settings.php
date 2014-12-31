@@ -21,7 +21,7 @@
 	padding-left: 40px;
 }
 .avatartype-mysteryman {
-    background: url(<?php print MW_INCLUDES_URL; ?>img/avatars.jpg) no-repeat;
+    background: url(<?php print mw_includes_url(); ?>img/avatars.jpg) no-repeat;
 }
 .avatartype-randomcolor {
 	background: #9F41AA;
@@ -31,7 +31,7 @@
 	-o-transition: background-color 0.2;
 }
 .avatartype-mwuser {
-    background: url(<?php print MW_INCLUDES_URL;?>img/avatars.jpg) no-repeat 0 -70px;
+    background: url(<?php print mw_includes_url();?>img/avatars.jpg) no-repeat 0 -70px;
 }
 .avatartype-upload {
 	width:30px;
@@ -313,27 +313,19 @@
     />
                     <span></span><span><i class="avatartype avatartype-randomcolor"></i><?php _e("Random Color"); ?></span></label>
                 </div>
-
-
-
-               <?php if(!is_module('white_label')){ ?>
                 <div class="mw-ui-field-holder">
                   <label class="mw-ui-check">
                     <input
-                        type="radio"
-                        name="avatar_style"
-                        value="3"
-                        class="mw_option_field"
-                		parent-reload="true"
-                        option-group="comments"
-                        <?php if(get_option('avatar_style', 'comments')=='3'): ?>   checked="checked"  <?php endif; ?>
-                    />
-                    <span></span>
-                    <span><i class="avatartype mw-icon-mw" style="font-size: 37px;color:#C4C4C4"></i><?php _e("Microweber logo"); ?></span></label>
+        type="radio"
+        name="avatar_style"
+        value="3"
+        class="mw_option_field"
+		parent-reload="true"
+        option-group="comments"
+        <?php if(get_option('avatar_style', 'comments')=='3'): ?>   checked="checked"  <?php endif; ?>
+    />
+                    <span></span><span><i class="avatartype mw-icon-mw" style="font-size: 37px;color:#C4C4C4"></i><?php _e("MW User Picture"); ?></span></label>
                 </div>
-               <?php } ?>
-
-
                 <div class="mw-ui-field-holder">
                   <label class="mw-ui-check relative" id="avatar_uploader">
                     <input

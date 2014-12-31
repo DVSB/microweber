@@ -1,15 +1,18 @@
 <?php
 
 $no_img = false;
-if (isset($params['rel']) and trim(strtolower(($params['rel']))) == 'post' and defined('POST_ID')) {
+if (isset($params['rel'])){
+	$params['rel_type'] = $params['rel'];
+}
+if (isset($params['rel_type']) and trim(strtolower(($params['rel_type']))) == 'post' and defined('POST_ID')) {
     $params['rel_id'] = POST_ID;
     $params['for'] = 'content';
 }
-if (isset($params['rel']) and trim(strtolower(($params['rel']))) == 'page' and defined('PAGE_ID')) {
+if (isset($params['rel_type']) and trim(strtolower(($params['rel_type']))) == 'page' and defined('PAGE_ID')) {
     $params['rel_id'] = PAGE_ID;
     $params['for'] = 'content';
 }
-if (isset($params['rel']) and trim(strtolower(($params['rel']))) == 'content' and defined('CONTENT_ID')) {
+if (isset($params['rel_type']) and trim(strtolower(($params['rel_type']))) == 'content' and defined('CONTENT_ID')) {
     $params['rel_id'] = CONTENT_ID;
     $params['for'] = 'content';
 }
@@ -23,7 +26,7 @@ if (isset($params['for'])) {
 } else {
     $for = 'modules';
 }
-
+ 
 $use_from_post = get_option('data-use-from-post', $params['id']);
 if ($use_from_post == 'y') {
     if (POST_ID != false) {
@@ -55,6 +58,7 @@ if (!isset($params['rel_id']) or $params['rel_id'] == false) {
     $params['rel_id'] = 0;
 }
 
+ 
 if (isset($params['rel_id']) == true) {
     $for_id = $params['rel_id'];
     $get_for_session = false;
@@ -64,8 +68,9 @@ if (isset($params['rel_id']) == true) {
     if ($get_for_session == false) {
         $data = get_pictures('rel_id=' . $params['rel_id'] . '&for=' . $for);
     } else {
-        $sid = session_id();
-        $data = get_pictures("rel_id=0&rel={$for}&session_id={$sid}");
+        $sid = mw()->user_manager->session_id();
+		
+        $data = get_pictures("rel_id=0&rel_type={$for}&session_id={$sid}");
 
     }
     if (!is_array($data)) {
@@ -117,7 +122,7 @@ if (isset($params['rel_id']) == true) {
     <script>
         var _this = mwd.getElementById('<?php print $params['id']; ?>');
         var _edit = mw.tools.firstParentWithClass(_this, 'edit');
-        var rel = mw.tools.mwattr(_edit, 'rel');
+        var rel = mw.tools.mwattr(_edit, 'rel_type');
         var field = mw.tools.mwattr(_edit, 'field');
         var is = (!!rel && !!field) && ( (rel == 'content' || rel == 'page' || rel == 'post') && field == 'content' );
         if (is && (_edit.querySelector('.module[data-type="pictures"][content-id]') === null) && (_edit.querySelector('.module[data-type="pictures"][rel="content"]') === null)) {

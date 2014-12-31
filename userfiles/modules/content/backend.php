@@ -3,13 +3,14 @@ only_admin_access();
 $action = url_param('action');
 $is_in_shop = false;
 $rand = uniqid(); ?>
-<?php $my_tree_id = crc32(mw('url')->string()); ?>
+<?php $my_tree_id = crc32(mw()->url_manager->string()); ?>
 <?php $active_content_id = '';
 if (isset($_REQUEST['edit_content']) and $_REQUEST['edit_content'] != 0) {
     $active_content_id = $_REQUEST['edit_content'];
 }
 
 ?>
+
 <script type="text/javascript">
 /*mw.on.hashParam("pg", function(){
       var dis = $p_id = this;
@@ -45,7 +46,7 @@ mw.on.moduleReload('#<?php print $params['id'] ?>');
 <script type="text/javascript">
 
 
-<?php   include_once( MW_INCLUDES_DIR . 'api/treerenderer.php');
+<?php   include_once( mw_includes_path() . 'api/treerenderer.php');
  ?>
 
 
@@ -88,7 +89,7 @@ mw.contentAction = {
         else if (type === 'category') {
             mw_select_category_for_editing(id);
         }
-        else if (type === 'product') {
+        else if (type === 'mw_backward_prod') {
             mw_add_product(id);
         } else if (type !== '') {
             mw_select_custom_content_for_editing(0, type)
@@ -298,26 +299,29 @@ function mw_set_edit_posts(in_page, is_cat, c) {
 
 
 function mw_clear_edit_module_attrs(){
-  mw.$('#pages_edit_container').removeAttr('content_type');
-  mw.$('#pages_edit_container').removeAttr('subtype');
-   mw.$('#pages_edit_container').removeAttr('data-parent-category-id');
-    mw.$('#pages_edit_container').removeAttr('data-category-id');
-    mw.$('#pages_edit_container').removeAttr('category_id');
-    mw.$('#pages_edit_container').removeAttr('category_id');
-    mw.$('#pages_edit_container').removeAttr('content-id');
-	 mw.$('#pages_edit_container').removeAttr('data-page-id');
-  	   mw.$('#pages_edit_container').removeAttr('content_type_filter');
-    mw.$('#pages_edit_container').removeAttr('subtype_filter');
+  var container = mw.$('#pages_edit_container');
+      container
+      .removeAttr('content_type')
+      .removeAttr('subtype')
+      .removeAttr('data-parent-category-id')
+      .removeAttr('data-category-id')
+      .removeAttr('category_id')
+      .removeAttr('category_id')
+      .removeAttr('content-id')
+      .removeAttr('data-page-id')
+      .removeAttr('content_type_filter')
+      .removeAttr('subtype_filter');
 }
 
 function mw_select_trash(c) {
-    mw.$('#pages_edit_container').removeAttr('data-content-id');
-    mw.$('#pages_edit_container').removeAttr('data-page-id');
-    mw.$('#pages_edit_container').removeAttr('data-category-id');
-    mw.$('#pages_edit_container').removeAttr('data-selected-category-id');
-    mw.$('#pages_edit_container').removeAttr('data-keyword');
-	     mw.$('#pages_edit_container').removeAttr('content_type_filter');
-    mw.$('#pages_edit_container').removeAttr('subtype_filter');
+    var container = mw.$('#pages_edit_container');
+    container.removeAttr('data-content-id')
+    .removeAttr('data-page-id')
+    .removeAttr('data-category-id')
+    .removeAttr('data-selected-category-id')
+    .removeAttr('data-keyword')
+	.removeAttr('content_type_filter')
+    .removeAttr('subtype_filter');
 
     mw.load_module('content/trash', '#pages_edit_container', function () {
         typeof c === 'function' ? c.call() : '';
@@ -404,18 +408,20 @@ function mw_select_post_for_editing($p_id, $subtype) {
 
     var active_item = $('#pages_tree_container_<?php print $my_tree_id; ?> .active-bg').first();
     var active_item_is_page = active_item.attr('data-page-id');
-    mw.$('#pages_edit_container').removeAttr('data-parent-category-id');
-    mw.$('#pages_edit_container').removeAttr('data-category-id');
-    mw.$('#pages_edit_container').removeAttr('category_id');
-    mw.$('#pages_edit_container').removeAttr('category_id');
-    mw.$('#pages_edit_container').removeAttr('content-id');
-mw.$('#pages_edit_container').removeAttr('content-id');
-mw.$('#pages_edit_container').removeAttr('content-id');
-  mw.$('#pages_edit_container').removeAttr('subtype');
-   mw.$('#pages_edit_container').removeAttr('content_type_filter');
-    mw.$('#pages_edit_container').removeAttr('subtype_filter');
-mw.$('#pages_edit_container').removeAttr('subtype_value');
-    mw.$('#pages_edit_container').removeAttr('data-page-id');
+
+    mw.$('#pages_edit_container')
+    .removeAttr('data-parent-category-id')
+    .removeAttr('data-category-id')
+    .removeAttr('category_id')
+    .removeAttr('category_id')
+    .removeAttr('content-id')
+    .removeAttr('content-id')
+    .removeAttr('content-id')
+    .removeAttr('subtype')
+    .removeAttr('content_type_filter')
+    .removeAttr('subtype_filter')
+    .removeAttr('subtype_value')
+    .removeAttr('data-page-id');
      
 
     mw.$('.mw-admin-go-live-now-btn').attr('content-id', $p_id);
@@ -538,12 +544,14 @@ function mw_make_pages_tree_sortable() {
                     if ($action == 'posts') {
                         $pages_container_params_str = " is_shop='n'  skip-static-pages='true' ";
                     } elseif ($action == 'pages') {
-                        $pages_container_params_str = " content_type='page'  subtype='[not_null]'   ";
+                        $pages_container_params_str = " content_type='page'  '   ";
                     } elseif ($action == 'categories') {
                         $pages_container_params_str = " manage_categories='yes'    ";
                     }
 				 
                     ?>
+                    
+                   
 
 <div class="mw-ui-row" id="edit-content-row">
   <?php if ($action != 'categories'): ?>

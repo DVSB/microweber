@@ -109,9 +109,9 @@ ordersSort = function(obj){
 }
 
 </style>
-<?php $is_orders = get_orders('order_completed=y&count=1'); ?>
+<?php $is_orders = get_orders('order_completed=1&count=1'); ?>
 
-<?php $latest_orders = get_orders('order_completed=y&count=1&order_status=pending'); ?>
+<?php $latest_orders = get_orders('order_completed=1&count=1&order_status=pending'); ?>
 
 
 
@@ -163,7 +163,7 @@ ordersSort = function(obj){
 <?php  if($is_orders != 0){    ?>
   	<div class="mw-table-sorting mw-admin-order-sort-completed pull-right" style="margin-left: 20px;">
             <div class="mw-ui-btn-nav unselectable pull-right" style="margin-left: 10px;">
-                <span class="mw-ui-btn mw-ui-btn-medium" data-sort-type="created_on" onclick="ordersSort({id:'shop-orders', el:this});">
+                <span class="mw-ui-btn mw-ui-btn-medium" data-sort-type="created_at" onclick="ordersSort({id:'shop-orders', el:this});">
             		<?php _e("Date"); ?>
             	</span>
                 <span class="mw-ui-btn mw-ui-btn-medium" data-sort-type="order_status" onclick="ordersSort({id:'shop-orders', el:this});">

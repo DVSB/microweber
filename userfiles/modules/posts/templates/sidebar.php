@@ -24,7 +24,7 @@ if(!isset($tn[1])){
 ?>
 
 
-<script>mw.moduleCSS("<?php print MW_MODULES_URL; ?>posts/css/style.css");</script>
+<script>mw.moduleCSS("<?php print modules_url(); ?>posts/css/style.css");</script>
 <div class="module-posts-template-sidebar">
   <?php if (!empty($data)): ?>
   <ul>
@@ -46,8 +46,8 @@ if(!isset($tn[1])){
                      <?php if(!isset($show_fields) or $show_fields == false or in_array('title', $show_fields)): ?>
                           <h5><a class="link media-heading" href="<?php print $item['link'] ?>"><?php print $item['title'] ?></a></h5>
                      <?php endif; ?>
-                      <?php if(!isset($show_fields) or $show_fields == false or in_array('created_on', $show_fields)): ?>
-                          <small class="date"><?php print $item['created_on'] ?></small>
+                      <?php if(!isset($show_fields) or $show_fields == false or in_array('created_at', $show_fields)): ?>
+                          <small class="date"><?php print $item['created_at'] ?></small>
                       <?php endif; ?>
 
                      <?php if(!isset($show_fields) or $show_fields == false or in_array('description', $show_fields)): ?>

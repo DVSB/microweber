@@ -27,6 +27,22 @@ api_expose('Utils\Backup\move_uploaded_file_to_backup');
 api_expose('Utils\Backup\restore');
 api_expose('Utils\Backup\cronjob');
 
+
+
+api_expose('Microweber\Utils\Backup\delete');
+api_expose('Microweber\Utils\Backup\create');
+api_expose('Microweber\Utils\Backup\download');
+api_expose('Microweber\Utils\Backup\create_full');
+api_expose('Microweber\Utils\Backup\move_uploaded_file_to_backup');
+
+api_expose('Microweber\Utils\Backup\restore');
+api_expose('Microweber\Utils\Backup\cronjob');
+
+
+
+
+
+
 if (defined("INI_SYSTEM_CHECK_DISABLED") == false) {
     define("INI_SYSTEM_CHECK_DISABLED", ini_get('disable_functions'));
 }
@@ -54,14 +70,6 @@ class Backup
     {
 
 
-        api_expose('Microweber\Utils\Backup\delete');
-        api_expose('Microweber\Utils\Backup\create');
-        api_expose('Microweber\Utils\Backup\download');
-        api_expose('Microweber\Utils\Backup\create_full');
-        api_expose('Microweber\Utils\Backup\move_uploaded_file_to_backup');
-
-        api_expose('Microweber\Utils\Backup\restore');
-        api_expose('Microweber\Utils\Backup\cronjob');
 
         if (!defined('USER_IP')) {
             if (isset($_SERVER["REMOTE_ADDR"])) {
@@ -78,7 +86,7 @@ class Backup
         if (is_object($app)) {
             $this->app = $app;
         } else {
-            $this->app = \Microweber\Application::getInstance();
+            $this->app = mw();
         }
 
         // }
@@ -110,7 +118,7 @@ class Backup
         //Send the output buffer and turn output buffering off.
         flush();
         //Yes... flush again.
-        session_write_close();
+        //session_write_close();
 
         $back_log_action = "Restoring backup";
         self::log_bg_action($back_log_action);
@@ -123,14 +131,14 @@ class Backup
     {
 
         if ($back_log_action == false) {
-            mw()->log->delete("is_system=y&rel=backup&user_ip=" . USER_IP);
+            mw()->log_manager->delete("is_system=y&rel=backup&user_ip=" . USER_IP);
         } else {
-            $check = mw()->log->get("order_by=created_on desc&one=true&is_system=y&created_on=[mt]30 min ago&field=action&rel=backup&user_ip=" . USER_IP);
+            $check = mw()->log_manager->get("order_by=created_on desc&one=true&is_system=y&created_on=[mt]30 min ago&field=action&rel=backup&user_ip=" . USER_IP);
 
             if (is_array($check) and isset($check['id'])) {
-                mw()->log->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
+                mw()->log_manager->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
             } else {
-                mw()->log->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP);
+                mw()->log_manager->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP);
             }
         }
 
@@ -160,7 +168,7 @@ class Backup
         //Send the output buffer and turn output buffering off.
         flush();
         //Yes... flush again.
-        session_write_close();
+        //session_write_close();
 
         //$back_log_action = "Creating full backup";
         //self::log_bg_action($back_log_action);
@@ -209,10 +217,10 @@ class Backup
         $here = $this->get_bakup_location();
         $filename = $here . 'full_backup_' . date("Y-M-d-His") . '_' . uniqid() . '' . '.zip';
 
-        $userfiles_folder = MW_USERFILES;
+        $userfiles_folder = userfiles_path();
 
         $locations = array();
-        $locations[] = MW_USERFILES;
+        $locations[] = userfiles_path();
         //$locations[] = $filename2;
         $fileTime = date("D, d M Y H:i:s T");
 
@@ -240,7 +248,7 @@ class Backup
         $this->log_action($back_log_action);
 
 
-        $zip->addDirectoryContent(MW_USERFILES, '', true);
+        $zip->addDirectoryContent(userfiles_path(), '', true);
         $back_log_action = "Adding userfiles to zip";
         $this->log_action($back_log_action);
 
@@ -316,16 +324,16 @@ class Backup
           //Send the output buffer and turn output buffering off.
           flush();
           //Yes... flush again.
-          session_write_close();
+          //session_write_close();
 
         */
 
         ob_start();
         $api = new \Microweber\Utils\Backup();
-        $this->app->cache->clear();
+        $this->app->cache_manager->clear();
         $rest = $api->exec_restore($params);
 
-        $this->app->cache->clear();
+        $this->app->cache_manager->clear();
 
         ob_end_clean();
         return array('success' => "Backup was restored!");
@@ -393,7 +401,7 @@ class Backup
 
                 $exract_folder = md5(basename($filename));
                 $unzip = new \Microweber\Utils\Unzip();
-                $target_dir = MW_CACHE_DIR . 'backup_restore' . DS . $exract_folder . DS;
+                $target_dir = mw_cache_path() . 'backup_restore' . DS . $exract_folder . DS;
                 if (!is_dir($target_dir)) {
                     mkdir_recursive($target_dir);
                 }
@@ -424,14 +432,10 @@ class Backup
             $back_log_action = "Restoring database";
             $this->log_action($back_log_action);
 
-            $db = $this->app->config('db');
+            $db = $this->app->config_manager->get('db');
             $filename = $sql_file;
             // Settings
-            $table = '*';
-            $host = $DBhost = $db['host'];
-            $user = $DBuser = $db['user'];
-            $pass = $DBpass = $db['pass'];
-            $name = $DBName = $db['dbname'];
+
 
             $sqlErrorText = '';
             $sqlErrorCode = 0;
@@ -449,15 +453,16 @@ class Backup
             // Process the sql file by statements
             foreach ($sqlArray as $stmt) {
                 $stmt = str_replace('/* MW_TABLE_SEP */', ' ', $stmt);
-                $stmt = str_ireplace($this->prefix_placeholder, MW_TABLE_PREFIX, $stmt);
+                $stmt = str_ireplace($this->prefix_placeholder, get_table_prefix(), $stmt);
                 if ($this->debug) {
                     d($stmt);
                 }
+
                 if (strlen($stmt) > 3) {
                     try {
-                        mw('db')->q($stmt);
+                        mw()->database->query($stmt);
 
-                        //
+
                     } catch (Exception $e) {
                         print 'Caught exception: ' . $e->getMessage() . "\n";
                         $sqlErrorCode = 1;
@@ -501,23 +506,23 @@ class Backup
         }
 
 
-        if (defined('MW_USERFILES')) {
-            if (!is_dir(MW_USERFILES)) {
-                mkdir_recursive(MW_USERFILES);
+        if (userfiles_path()) {
+            if (!is_dir(userfiles_path())) {
+                mkdir_recursive(userfiles_path());
             }
         }
 
 
-        if (defined('MW_MEDIA_DIR')) {
-            if (!is_dir(MW_MEDIA_DIR)) {
-                mkdir_recursive(MW_MEDIA_DIR);
+        if (media_base_path()) {
+            if (!is_dir(media_base_path())) {
+                mkdir_recursive(media_base_path());
             }
         }
 
         if ($temp_dir_restore != false and is_dir($temp_dir_restore)) {
 
             $srcDir = $temp_dir_restore;
-            $destDir = MW_USERFILES;
+            $destDir = userfiles_path();
 
 
             $copy = $this->copyr($srcDir, $destDir);
@@ -530,7 +535,7 @@ class Backup
         }
         $back_log_action = "Cleaning up cache";
         $this->log_action($back_log_action);
-        mw('cache')->clear();
+        mw()->cache_manager->clear();
 
 
         $this->log_action(false);
@@ -626,11 +631,11 @@ class Backup
         $cache_id_loc = 'backup_progress';
         $cache_state_id = 'backup_zip_state';
 
-        $cache_content = $this->app->cache->get($cache_id, 'backup');
-        $cache_lock = $this->app->cache->get($cache_id_loc, 'backup');
-        $cache_state = $this->app->cache->get($cache_state_id, 'backup', 30);
+        $cache_content = $this->app->cache_manager->get($cache_id, 'backup');
+        $cache_lock = $this->app->cache_manager->get($cache_id_loc, 'backup');
+        $cache_state = $this->app->cache_manager->get($cache_state_id, 'backup', 30);
 
-        //$cache_folders = $this->app->cache->get($cache_id_folders, 'backup');
+        //$cache_folders = $this->app->cache_manager->get($cache_id_folders, 'backup');
 
 
         //$fileTime = date("D, d M Y H:i:s T");
@@ -638,7 +643,7 @@ class Backup
         $time = time();
         $here = $this->get_bakup_location();
 
-        session_write_close();
+        //session_write_close();
 
         if ($cache_state == 'opened') {
 
@@ -650,11 +655,10 @@ class Backup
         //   $filename2 = $here . 'test_' . date("Y-M-d-H") . '_' . crc32(USER_IP) . '' . '.zip';
 
         if ($cache_content == false or empty($cache_content)) {
-            $this->app->cache->save(false, $cache_id_loc, 'backup');
-            $this->app->cache->save(false, $cache_id, 'backup');
+            $this->app->cache_manager->save(false, $cache_id_loc, 'backup');
+            $this->app->cache_manager->save(false, $cache_id, 'backup');
 
-            $cron = new \Microweber\Utils\Cron();
-            $cron->delete_job('make_full_backup');
+
             return true;
         } else {
 
@@ -671,7 +675,7 @@ class Backup
                 $cache_lock['files_count'] = count($cache_content);
                 $cache_lock['time'] = $time;
                 $cache_lock['filename'] = $filename;
-                $this->app->cache->save($cache_lock, $cache_id_loc, 'backup');
+                $this->app->cache_manager->save($cache_lock, $cache_id_loc, 'backup');
                 // return false;
             } else {
                 if (isset($cache_lock['filename'])) {
@@ -702,14 +706,14 @@ class Backup
             if (is_array($backup_actions)) {
                 $i = 0;
 
-                $this->app->cache->save($filename, $cache_id_loc, 'backup');
+                $this->app->cache_manager->save($filename, $cache_id_loc, 'backup');
 
 
                 if (!$mw_backup_zip_obj->open($filename, ZIPARCHIVE::CREATE)) {
                     $zip_opened = 1;
                     return false;
                 }
-                $this->app->cache->save('opened', $cache_state_id, 'backup');
+                $this->app->cache_manager->save('opened', $cache_state_id, 'backup');
 
                 $limit_per_turn = 20;
 
@@ -727,7 +731,7 @@ class Backup
                                 $mw_backup_zip_obj->close();
                             }
                         }
-                        $this->app->cache->save('closed', $cache_state_id, 'backup');
+                        $this->app->cache_manager->save('closed', $cache_state_id, 'backup');
                     } else {
 
                         $cache_lock['processed']++;
@@ -743,14 +747,14 @@ class Backup
                         $back_log_action = "Progress  {$precent}% ({$cache_lock['processed']}/{$cache_lock['files_count']}) <br><small>" . basename($item) . "</small>";
                         $this->log_action($back_log_action);
 
-                        $this->app->cache->save($cache_lock, $cache_id_loc, 'backup');
+                        $this->app->cache_manager->save($cache_lock, $cache_id_loc, 'backup');
 
 
                         if ($item == 'make_db_backup') {
 
                             $limit_per_turn = 1;
                             $mw_backup_zip_obj->close();
-                            $this->app->cache->save('closed', $cache_state_id, 'backup');
+                            $this->app->cache_manager->save('closed', $cache_state_id, 'backup');
 
 
                             $db_file = $this->create($bak_fn . '.sql');
@@ -760,7 +764,7 @@ class Backup
                                 $zip_opened = 1;
                                 return false;
                             }
-                            $this->app->cache->save('opened', $cache_state_id, 'backup');
+                            $this->app->cache_manager->save('opened', $cache_state_id, 'backup');
 
 
                             if (isset($db_file['filename'])) {
@@ -774,7 +778,7 @@ class Backup
                                 }
                             }
                         } else {
-                            $relative_loc = str_replace(MW_USERFILES, '', $item);
+                            $relative_loc = str_replace(userfiles_path(), '', $item);
 
 
                             $new_backup_actions = array();
@@ -802,16 +806,16 @@ class Backup
                         if (isset($new_backup_actions) and !empty($new_backup_actions)) {
                             $backup_actions = array_merge($backup_actions, $new_backup_actions);
                             array_unique($backup_actions);
-                            $this->app->cache->save($backup_actions, $cache_id, 'backup');
+                            $this->app->cache_manager->save($backup_actions, $cache_id, 'backup');
 
                         } else {
-                            $this->app->cache->save($backup_actions, $cache_id, 'backup');
+                            $this->app->cache_manager->save($backup_actions, $cache_id, 'backup');
 
                         }
                         //  d($backup_actions[$key]);
 
                         if (empty($backup_actions)) {
-                            $this->app->cache->save(false, $cache_id, 'backup');
+                            $this->app->cache_manager->save(false, $cache_id, 'backup');
 
                         }
 
@@ -820,13 +824,13 @@ class Backup
                 }
 
                 $mw_backup_zip_obj->close();
-                $this->app->cache->save('closed', $cache_state_id, 'backup');
+                $this->app->cache_manager->save('closed', $cache_state_id, 'backup');
             }
         }
 
-        // $this->app->cache->save(false, $cache_id_loc, 'backup');
+        // $this->app->cache_manager->save(false, $cache_id_loc, 'backup');
         if (empty($backup_actions)) {
-            $this->app->cache->save(false, $cache_id, 'backup');
+            $this->app->cache_manager->save(false, $cache_id, 'backup');
 
         }
         return $cache_content;
@@ -849,14 +853,10 @@ class Backup
             only_admin_access();
 
         }
-        $temp_db = $db = $this->app->config('db');
-
+   
         // Settings
         $table = '*';
-        $host = $DBhost = $db['host'];
-        $user = $DBuser = $db['user'];
-        $pass = $DBpass = $db['pass'];
-        $name = $DBName = $db['dbname'];
+
 
         // Set the suffix of the backup filename
         if ($table == '*') {
@@ -910,7 +910,7 @@ class Backup
         }
 
         $head = "/* Microweber database backup exported on: " . date('l jS \of F Y h:i:s A') . " */ \n";
-        $head .= "/* MW_TABLE_PREFIX: " . MW_TABLE_PREFIX . " */ \n\n\n";
+        $head .= "/* get_table_prefix(): " . get_table_prefix() . " */ \n\n\n";
         file_put_contents($sql_bak_file, $head);
         $return = "";
         $tables = '*';
@@ -919,7 +919,7 @@ class Backup
             $tables = array();
             //$result = mysql_query('SHOW TABLES');
             $qs = 'SHOW TABLES';
-            $result = mw('db')->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
+            $result = mw()->database->query($qs, $cache_id = false, $cache_group = false, $only_query = false);
             //while ($row = mysql_fetch_row($result)) {
             //	$tables[] = $row[0];
             //}
@@ -943,9 +943,9 @@ class Backup
         foreach ($tables as $table) {
             $is_cms_table = false;
 
-            if (MW_TABLE_PREFIX == '') {
+            if (get_table_prefix() == '') {
                 $is_cms_table = 1;
-            } elseif (stristr($table, MW_TABLE_PREFIX)) {
+            } elseif (stristr($table, get_table_prefix())) {
                 $is_cms_table = 1;
             }
 
@@ -955,10 +955,10 @@ class Backup
                 $this->log_action($back_log_action);
                 //$result = mysql_query('SELECT * FROM ' . $table);
                 $qs = 'SELECT * FROM ' . $table;
-                $result = mw('db')->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
+                $result = mw()->database->query($qs, $cache_id = false, $cache_group = false, $only_query = false);
                 $num_fields = count($result[0]);
                 //$num_fields = mysql_num_fields($result);
-                $table_without_prefix = $this->prefix_placeholder . str_ireplace(MW_TABLE_PREFIX, "", $table);
+                $table_without_prefix = $this->prefix_placeholder . str_ireplace(get_table_prefix(), "", $table);
                 // First part of the output - remove the table
                 //$return .= 'DROP TABLE IF EXISTS ' . $table_without_prefix . $this -> file_q_sep . "\n\n\n";
                 $return = 'DROP TABLE IF EXISTS ' . $table_without_prefix . $this->file_q_sep . "\n\n\n";
@@ -977,11 +977,11 @@ class Backup
 
 
                 $qs = 'SHOW CREATE TABLE ' . $table;
-                $res_ch = mw('db')->query($qs, $cache_id = false, $cache_group = false, $only_query = false, $temp_db);
+                $res_ch = mw()->database->query($qs, $cache_id = false, $cache_group = false, $only_query = false);
                 $row2 = array_values($res_ch[0]);
 
 
-                $create_table_without_prefix = str_ireplace(MW_TABLE_PREFIX, $this->prefix_placeholder, $row2[1]);
+                $create_table_without_prefix = str_ireplace(get_table_prefix(), $this->prefix_placeholder, $row2[1]);
 
                 //$return .= "\n\n" . $create_table_without_prefix . $this -> file_q_sep . "\n\n\n";
 
@@ -1031,7 +1031,7 @@ class Backup
         // Save the sql file
 //		$handle = fopen($filess, 'w+');
 //		$head = "/* Microweber database backup exported on: " . date('l jS \of F Y h:i:s A') . " */ \n";
-//		$head .= "/* MW_TABLE_PREFIX: " . MW_TABLE_PREFIX . " */ \n\n\n";
+//		$head .= "/* get_table_prefix(): " . get_table_prefix() . " */ \n\n\n";
 //		$return = $head . $return;
 //
 //		fwrite($handle, $return);
@@ -1057,7 +1057,6 @@ class Backup
     }
 
 
-
     function get_bakup_location()
     {
 
@@ -1072,7 +1071,7 @@ class Backup
         if ($loc != false) {
             return $loc;
         }
-        $here = MW_USERFILES . "backup" . DS;
+        $here = userfiles_path() . "backup" . DS;
 
         if (!is_dir($here)) {
             mkdir_recursive($here);
@@ -1083,7 +1082,7 @@ class Backup
             }
         }
 
-        $here = MW_USERFILES . "backup" . DS . MW_TABLE_PREFIX . DS;
+        $here = userfiles_path() . "backup" . DS . get_table_prefix() . DS;
 
         $here2 = mw('option')->get('backup_location', 'admin/backup');
         if ($here2 != false and is_string($here2) and trim($here2) != 'default' and trim($here2) != '') {
@@ -1128,16 +1127,16 @@ class Backup
             set_time_limit(600);
         }
 
-        $cron = new \Microweber\Utils\Cron();
+
 
         $backup_actions = array();
         $backup_actions[] = 'make_db_backup';
 
-        $userfiles_folder = MW_USERFILES;
-        $media_folder = MW_MEDIA_DIR;
+        $userfiles_folder = userfiles_path();
+        $media_folder = media_base_path();
 
 
-        $all_images = $this->app->media->get('limit=1000000');
+        $all_images = $this->app->media_manager->get('limit=1000000');
 
         if (!empty($all_images)) {
             foreach ($all_images as $image) {
@@ -1151,17 +1150,6 @@ class Backup
             }
         }
 
-        //d($all_images);
-        // exit;
-
-
-//        $it = new RecursiveDirectoryIterator($userfiles_folder);
-//
-//        foreach(new RecursiveIteratorIterator($it) as $file) {
-//            $backup_actions[] = $file;
-//           // echo $file . "\n";
-//
-//        }
 
 
         $host = (parse_url(site_url()));
@@ -1174,10 +1162,8 @@ class Backup
         }
 
 
-
-
-        $userfiles_folder_uploaded = $media_folder .DS.$host_dir . DS . 'uploaded' . DS;
-        $userfiles_folder_uploaded = $media_folder .DS.$host_dir . DS ;
+        $userfiles_folder_uploaded = $media_folder . DS . $host_dir . DS . 'uploaded' . DS;
+        $userfiles_folder_uploaded = $media_folder . DS . $host_dir . DS;
         $userfiles_folder_uploaded = \normalize_path($userfiles_folder_uploaded);
         $folders = \rglob($userfiles_folder_uploaded . '*', GLOB_NOSORT);
 
@@ -1195,7 +1181,7 @@ class Backup
             $text_files = array();
             foreach ($folders as $fold) {
                 if (!stristr($fold, 'backup')) {
-                    if (stristr($fold, '.php') or stristr($fold, '.js')  or stristr($fold, '.css')) {
+                    if (stristr($fold, '.php') or stristr($fold, '.js') or stristr($fold, '.css')) {
                         $text_files[] = $fold;
                     } else {
                         $backup_actions[] = $fold;
@@ -1212,21 +1198,17 @@ class Backup
 
         $cache_state_id = 'backup_zip_state';
         //$backup_actions[] = 'makesdfsdf_db_backup';
-        $this->app->cache->save($backup_actions, $cache_id, 'backup');
-        $this->app->cache->save(false, $cache_id_loc, 'backup');
-        $this->app->cache->save(false, $cache_state_id, 'backup');
+        $this->app->cache_manager->save($backup_actions, $cache_id, 'backup');
+        $this->app->cache_manager->save(false, $cache_id_loc, 'backup');
+        $this->app->cache_manager->save(false, $cache_state_id, 'backup');
         //$cron->Register('make_full_backup', 0, '\Microweber\Utils\Backup::cronjob_exec');
         //$cron->job('make_full_backup', 0, array('\Microweber\Utils\Backup','cronjob_exec'));
 
-        // $cron->job('run_something_once', 0, array('\Microweber\Utils\Backup','cronjob'));
-        if (!defined('MW_NO_SESSION')) {
+         if (!defined('MW_NO_SESSION')) {
             define('MW_NO_SESSION', 1);
         }
 
-        $cron->job('make_full_backup', '5 sec', array('\Microweber\Utils\Backup', 'cronjob'), array('type' => 'full'));
-        //  $cron->job('another_job', 10, 'some_function' ,array('param'=>'val') );
-        exit();
-
+        return;
 
 
     }
@@ -1239,14 +1221,14 @@ class Backup
 
 
             if ($back_log_action == false) {
-                $this->app->log->delete("is_system=y&rel=backup&user_ip=" . USER_IP);
+                $this->app->log_manager->delete("is_system=y&rel=backup&user_ip=" . USER_IP);
             } else {
-                $check = $this->app->log->get("order_by=created_on desc&one=true&is_system=y&created_on=[mt]30 min ago&field=action&rel=backup&user_ip=" . USER_IP);
+                $check = $this->app->log_manager->get("order_by=created_on desc&one=true&is_system=y&created_on=[mt]30 min ago&field=action&rel=backup&user_ip=" . USER_IP);
 
                 if (is_array($check) and isset($check['id'])) {
-                    $this->app->log->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
+                    $this->app->log_manager->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP . "&id=" . $check['id']);
                 } else {
-                    $this->app->log->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP);
+                    $this->app->log_manager->save("is_system=y&field=action&rel=backup&value=" . $back_log_action . "&user_ip=" . USER_IP);
                 }
             }
         }
@@ -1312,8 +1294,7 @@ class Backup
                     $bak = array();
                     $bak['filename'] = basename($file);
                     $bak['date'] = $date;
-                    $bak['time'] = str_replace('_', ':', $time);
-                    ;
+                    $bak['time'] = str_replace('_', ':', $time);;
                     $bak['size'] = filesize($file);
 
                     $backups[] = $bak;

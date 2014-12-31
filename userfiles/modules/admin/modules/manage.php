@@ -21,6 +21,7 @@ if ($load_module == true): ?>
         }
 
         $mods = scan_for_modules($s);
+		
     }
     if (isset($params['category'])) {
 
@@ -61,12 +62,16 @@ if ($load_module == true): ?>
 
 
     } else {
-        $mods = mw('module')->get($mod_params);
+        $mods = mw()->modules->get($mod_params);
+		
+
+
+
     }
 
     $upds = false;
 
-    ?>
+    ?>  
     <style>
         .mw-module-installed-0 {
             opacity: 0.6;
@@ -80,6 +85,7 @@ if ($load_module == true): ?>
                     <?php foreach ($upds as $upd_mod): ?>
                         <?php if (isset($upd_mod['module'])): ?>
                             <?php $item = module_info($upd_mod['module']); ?>
+                          
                             <?php if (isset($item['id'])): ?>
                                 <li class="mw-admin-module-list-item mw-module-installed-<?php print $item['installed'] ?>"
                                     id="module-db-id-<?php print $item['id'] ?>">
@@ -91,6 +97,7 @@ if ($load_module == true): ?>
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <?php foreach ($mods as $k => $item): ?>
+               
                     <?php if (!isset($item['id'])): ?>
                         <li class="mw-admin-module-list-item mw-module-not-installed"
                             id="module-remote-id-<?php print $item['id'] ?>">
@@ -99,12 +106,14 @@ if ($load_module == true): ?>
                                 if (isset($item[0]) and is_array($item[0])) {
                                     $item = $item[0];
                                 }
+								
                                 $data = $item; include($config["path"] . 'update_module.php'); ?>
                             </div>
                         </li>
                     <?php else : ?>
                         <li class="mw-admin-module-list-item mw-module-installed-<?php print $item['installed'] ?>"
                             id="module-db-id-<?php print $item['id'] ?>">
+                            
                             <module type="admin/modules/edit_module" data-module-id="<?php print $item['id'] ?>"/>
                         </li>
                     <?php endif; ?>

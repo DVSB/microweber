@@ -6,7 +6,7 @@
 </script>
 <script>
   mw.require("files.js");
-  mw.require("<?php print INCLUDES_URL; ?>css/wysiwyg.css");
+  mw.require("<?php print mw_includes_url(); ?>css/wysiwyg.css");
 </script>
 <script type="text/javascript">
 $(document).ready(function(){

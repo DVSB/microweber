@@ -1,6 +1,69 @@
 <?php
 
 
+
+function is_page()
+{
+    if (page_id()) {
+        return true;
+    }
+}
+
+function is_post()
+{
+    if (post_id()) {
+        return true;
+    }
+}
+
+
+function is_home()
+{
+    if (defined('IS_HOME')) {
+        return IS_HOME;
+    }
+}
+
+
+function is_category()
+{
+    if (category_id()) {
+        return true;
+    }
+}
+
+function page_id()
+{
+    if (defined('PAGE_ID')) {
+        return PAGE_ID;
+    }
+}
+
+function post_id()
+{
+    if (defined('POST_ID')) {
+        return POST_ID;
+    }
+}
+
+function content_id()
+{
+    if (post_id()) {
+        return post_id();
+    } elseif (page_id()) {
+        return page_id();
+    }
+}
+
+
+function category_id()
+{
+    if (defined('CATEGORY_ID')) {
+        return CATEGORY_ID;
+    }
+}
+
+
 /**
  * Gets content or posts by matching criteria.
  *
@@ -30,15 +93,15 @@
  */
 
 
-api_expose_admin('get_content');
+
 function get_content($params = false)
 {
 
-    return mw()->content->get($params);
+    return mw()->content_manager->get($params);
 }
 
 
-api_expose('get_content_admin');
+
 /**
  * Same as get_content(), just it checks if the user is admin
  * @see get_content
@@ -75,16 +138,16 @@ function get_content_admin($params)
  *      foreach($content as $item){
  *       print $item['id'];
  *       print $item['title'];
- *       print mw()->content->link($item['id']);
+ *       print mw()->content_manager->link($item['id']);
  *      }
  * }
  * </code>
  *
  */
-api_expose_admin('get_posts');
+
 function get_posts($params = false)
 {
-    return mw()->content->get_posts($params);
+    return mw()->content_manager->get_posts($params);
 }
 
 /**
@@ -98,15 +161,16 @@ function get_posts($params = false)
  * @link http://microweber.com/docs/functions/get_pages
  *
  */
-api_expose_admin('get_pages');
+
 function get_pages($params = false)
 {
-    return mw()->content->get_pages($params);
+    return mw()->content_manager->get_pages($params);
 }
-api_expose_admin('get_products');
+
+
 function get_products($params = false)
 {
-    return mw()->content->get_products($params);
+    return mw()->content_manager->get_products($params);
 }
 
 
@@ -123,13 +187,10 @@ function get_products($params = false)
  * @param int|bool $params Optional
  * @return array The database results
  */
-api_expose_admin('get_content_by_id');
 function get_content_by_id($params = false)
 {
-    return mw()->content->get_by_id($params);
+    return mw()->content_manager->get_by_id($params);
 }
-
-
 
 
 /**
@@ -145,19 +206,19 @@ function get_content_by_id($params = false)
  * @param bool|int $id the id of the content
  * @return string The content URL
  */
-api_expose('content_link');
+
 function content_link($id = false)
 {
 
-    return mw()->content->link($id);
+    return mw()->content_manager->link($id);
 }
-api_expose_admin('content_title');
+
+
 function content_title($id = false)
 {
 
-    return mw()->content->title($id);
+    return mw()->content_manager->title($id);
 }
-
 
 
 /**
@@ -169,17 +230,17 @@ function content_title($id = false)
  * @param $data The content to delete
  * @return array|string
  */
-api_expose('delete_content');
+
 function delete_content($data)
 {
-    return mw()->content->delete($data);
+    return mw()->content_manager->delete($data);
 }
 
 
 /**
  * Returns html code with paging links
  *
- * @param $params['num'] = 5; //the numer of pages
+ * @param $params ['num'] = 5; //the numer of pages
  * @internal param $display =
  *            'default' //sets the default paging display with <ul> and </li>
  *            tags. If $display = false, the function will return the paging
@@ -189,7 +250,7 @@ function delete_content($data)
  */
 function paging($params)
 {
-    return mw()->content->paging($params);
+    return mw()->content_manager->paging($params);
 
 }
 
@@ -203,41 +264,42 @@ function paging($params)
  * @param bool $without_main_parent If true, it will exclude the $id from the results
  * @return array The parent content items
  */
-api_expose_admin('content_parents');
+
 function content_parents($id = 0, $without_main_parent = false)
 {
-    return mw()->content->get_parents($id, $without_main_parent);
+    return mw()->content_manager->get_parents($id, $without_main_parent);
 }
 
 
-api_expose_admin('get_content_children');
+
 function get_content_children($id = 0, $without_main_parent = false)
 {
-    return mw()->content->get_children($id, $without_main_parent);
+    return mw()->content_manager->get_children($id, $without_main_parent);
 }
 
-api_expose_admin('page_link');
+
 function page_link($id = false)
 {
-    return mw()->content->link($id);
+    return mw()->content_manager->link($id);
 }
-api_expose_admin('post_link');
+
+
 function post_link($id = false)
 {
-    return mw()->content->link($id);
+    return mw()->content_manager->link($id);
 }
-api_expose_admin('pages_tree');
+
+
 function pages_tree($params = false)
 {
 
-    return mw()->content->pages_tree($params);
+    return mw()->content_manager->pages_tree($params);
 }
 
 
-api_expose('save_edit');
 function save_edit($post_data)
 {
-    return mw()->content->save_edit($post_data);
+    return mw()->content_manager->save_edit($post_data);
 }
 
 
@@ -251,118 +313,71 @@ function save_edit($post_data)
  * @version 1.0
  * @since Version 0.1
  */
-api_expose_admin('save_content');
+
 function save_content($data, $delete_the_cache = true)
 {
-    return mw()->content->save_content($data, $delete_the_cache);
+    return mw()->content_manager->save_content($data, $delete_the_cache);
 }
 
-api_expose('save_content_admin');
+
 
 function save_content_admin($data, $delete_the_cache = true)
 {
-    return mw()->content->save_content_admin($data, $delete_the_cache);
+    return mw()->content_manager->save_content_admin($data, $delete_the_cache);
 }
 
 
 function save_content_field($data, $delete_the_cache = true)
 {
 
-    return mw()->content->save_content_field($data, $delete_the_cache);
+    return mw()->content_manager->save_content_field($data, $delete_the_cache);
 
 }
 
-api_expose('get_content_field_draft');
+
 function get_content_field_draft($data)
 {
-    return mw()->content->edit_field_draft($data);
+    return mw()->content_manager->edit_field_draft($data);
 }
 
 function get_content_field($data, $debug = false)
 {
-    return mw()->content->edit_field($data, $debug);
+    return mw()->content_manager->edit_field($data, $debug);
 }
 
 
 function content_data($content_id, $field_name = false)
 {
 
-    return mw()->content->data($content_id, $field_name);
+    return mw()->content_manager->data($content_id, $field_name);
 }
 
 
 function next_content($content_id = false)
 {
-    return mw()->content->next_content($content_id);
+    return mw()->content_manager->next_content($content_id);
 }
 
 
 function prev_content($content_id = false)
 {
-    return mw()->content->prev_content($content_id);
+    return mw()->content_manager->prev_content($content_id);
 }
 
-function breadcrumb($params = false){
-
-
-    return mw()->content->breadcrumb($params);
-
-
-}
-function custom_field_value($content_id, $field_name, $table = 'content')
+function breadcrumb($params = false)
 {
-    return mw()->fields->get_value($content_id, $field_name, $table);
+
+
+    return mw()->content_manager->breadcrumb($params);
+
+
 }
 
 
-function get_custom_fields($table, $id = 0, $return_full = false, $field_for = false, $debug = false, $field_type = false, $for_session = false)
-{
-    if (isset($table) and intval($table) > 0) {
-        $id = intval(intval($table));
-        $table = 'content';
-    }
-    return mw()->fields->get($table, $id, $return_full, $field_for, $debug, $field_type, $for_session);
-}
 
 
-function get_custom_field_by_id($id)
-{
-    return mw()->fields->get_by_id($id);
-}
 
-function save_custom_field($data)
-{
-    return mw()->fields->save($data);
-}
 
-function delete_custom_field($data)
-{
-    return mw()->fields->delete($data);
-}
 
-function make_custom_field($field_id = 0, $field_type = 'text', $settings = false)
-{
-    return mw()->fields->make($field_id, $field_type, $settings);
-}
 
-function is_page()
-{
-    if (defined('PAGE_ID')) {
-        return PAGE_ID;
-    }
-}
-
-function is_post()
-{
-    if (defined('POST_ID')) {
-        return POST_ID;
-    }
-}
-
-function is_category()
-{
-    if (defined('CATEGORY_ID')) {
-        return CATEGORY_ID;
-    }
-}
 

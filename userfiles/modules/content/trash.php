@@ -72,7 +72,7 @@ if (isset($post_params['data-thumbnail-size'])) {
 
 
 $post_params = array();
-$post_params['is_deleted'] = 'y';
+$post_params['is_deleted'] = 1;
 $post_params['limit'] = 250;
 
 $content   =$data = get_content($post_params);
@@ -91,7 +91,7 @@ $paging_links = false;
 //$pages_count = intval($pages);
 ?>
 <?php if (intval($pages_count) > 1): ?>
-<?php $paging_links = mw('content')->paging_links(false, $pages_count, $paging_param, $keyword_param = 'keyword'); ?>
+<?php $paging_links = mw()->content_manager->paging_links(false, $pages_count, $paging_param, $keyword_param = 'keyword'); ?>
 <?php endif; ?>
 
 
@@ -354,7 +354,7 @@ restore_single_post_from_deletion = function(id){
 
 <?php else: ?>
 <div class="mw-no-posts-foot">
-  <?php if( isset($params['subtype']) and $params['subtype'] == 'product') : ?>
+  <?php if( isset($params['subtype']) and $params['content_type'] == 'product') : ?>
   <h2><?php _e("No Products Here"); ?></h2>
 <?php else: ?>
 <h2><?php _e("No Posts Here"); ?></h2>

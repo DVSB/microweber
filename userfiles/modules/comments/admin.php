@@ -28,7 +28,7 @@
 
 
 $get_comments_params = array();
-$get_comments_params['rel'] = 'content';
+$get_comments_params['rel_type'] = 'content';
 if (isset($params['content-id'])) {
 
     $get_comments_params['rel_id'] = $params['content-id'];
@@ -129,7 +129,7 @@ $(document).ready(function(){
                         value="current_post" <?php if ($display_comments_from_which_post == 'current_post'): ?> selected="selected" <?php endif ?>>
             <?php _e("Current Post"); ?>
             </option>
-            <?php $posts = get_posts("is_active=y&limit=1000"); $html = ''; ?>
+            <?php $posts = get_posts("is_active=1&limit=1000"); $html = ''; ?>
             <?php
                     foreach ($posts as $post) {
                         $sel_html = '';
@@ -164,7 +164,7 @@ $(document).ready(function(){
             : </label>
           <?php
             $comment_modules = array();
-            $comment_modules['rel'] = 'modules';
+            $comment_modules['rel_type'] = 'modules';
             $comment_modules['rel_id'] = '[not_null]';
             $comment_modules['fields'] = 'rel,rel_id';
 

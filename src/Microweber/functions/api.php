@@ -1,35 +1,4 @@
 <?php
-function router($constructor_params = null)
-{
-    global $_mw_global_router_object;
-
-    if (!is_object($_mw_global_router_object)) {
-        $_mw_global_router_object = \Microweber\Router::getInstance($constructor_params);
-    }
-    return $_mw_global_router_object;
-}
-
-function api($function_name, $params = false)
-{
-    static $c;
-
-    if ($c == false) {
-        if (!defined('MW_API_RAW')) {
-            define('MW_API_RAW', true);
-        }
-        $c = new \Microweber\Controller();
-
-    }
-    $res = $c->api($function_name, $params);
-    return $res;
-
-}
-
-function api_link($str = '')
-{
-    return mw('url')->api_link($str);
-
-}
 
 
 function api_expose($function_name)
@@ -52,18 +21,19 @@ function api_expose_admin($function_name)
     }
 }
 
-function api_hook($function_name, $next_function_name = false)
+
+function api_bind($function_name, $callback = false)
 {
-    static $mw_api_hooks;
+    static $mw_api_binds;
     if (is_bool($function_name)) {
-        if (is_array($mw_api_hooks)) {
-            $index = ($mw_api_hooks);
+        if (is_array($mw_api_binds)) {
+            $index = ($mw_api_binds);
             return $index;
         }
 
     } else {
         $function_name = trim($function_name);
-        $mw_api_hooks[$function_name][] = $next_function_name;
+        $mw_api_binds[$function_name][] = $callback;
 
     }
 }
@@ -135,7 +105,7 @@ function parse_params($params)
     return $params;
 }
 
-
+// stores vars in memory
 function mw_var($key, $new_val = false)
 {
     static $mw_var_storage;
@@ -156,103 +126,15 @@ function mw_var($key, $new_val = false)
 }
 
 
-event_bind('mw_cron', 'mw_cron');
-api_expose('mw_cron');
-function mw_cron()
+function autoload_add($dirname)
 {
-
-    $file_loc = MW_CACHE_ROOT_DIR . "cron" . DS;
-
-    if (!is_dir($file_loc)) {
-        mkdir_recursive($file_loc);
-    }
-    $file_loc_hour = $file_loc . 'cron_lock' . '.php';
-    $time = time();
-    if (!is_file($file_loc_hour)) {
-        @touch($file_loc_hour);
-    } else {
-        if ((filemtime($file_loc_hour)) > $time - 4) {
-            @touch($file_loc_hour);
-            return true;
-        }
-    }
-    // touch($file_loc_hour);
-    $cron = new \Microweber\Utils\Cron;
-    //$cron->run();
-
-    $scheduler = new \Microweber\Utils\Events();
-
-    // schedule a global scope function:
-    //$scheduler->registerShutdownEvent("\Microweber\Utils\Backup", $params);
-
-    $scheduler->registerShutdownEvent(array($cron, 'run'));
-
-    $file_loc = MW_CACHE_ROOT_DIR . "cron" . DS;
-
-    $some_hour = date('Ymd');
-    $file_loc_hour = $file_loc . 'cron_lock' . $some_hour . '.php';
-    if (is_file($file_loc_hour)) {
-        return true;
-    } else {
-
-        $opts = mw('option')->get("option_key2=cronjob");
-        if ($opts != false) {
-            if (!is_dir($file_loc)) {
-                if (!mkdir($file_loc)) {
-                    return false;
-                }
-            }
-
-            if (!defined('MW_CRON_EXEC')) {
-                define('MW_CRON_EXEC', true);
-            }
-
-            foreach ($opts as $item) {
-
-                if (isset($item['module']) and $item['module'] != '' and mw('module')->is_installed($item['module'])) {
-                    if (isset($item['option_value']) and $item['option_value'] != 'n') {
-                        $when = strtotime($item['option_value']);
-                        if ($when != false) {
-                            $when_date = date('Ymd', $when);
-                            $file_loc_date = $file_loc . '' . $item['option_key'] . $item['id'] . $when_date . '.php';
-                            if (!is_file($file_loc_date)) {
-                                touch($file_loc_date);
-                                $md = module_data('module=' . $item['module'] . '/cron');
-                            }
-                        }
-                    }
-                } else {
-                    //	d($item);
-                }
-            }
-            touch($file_loc_hour);
-        }
-    }
+    set_include_path($dirname .
+        PATH_SEPARATOR . get_include_path());
 }
 
 
-function event_trigger($api_function, $data = false)
+function api_link($str = '')
 {
-    $event = new \Microweber\Event();
-    return $event->emit($api_function, $data);
-}
-
-function action_hook($function_name, $next_function_name = false)
-{
-    return event_bind($function_name, $next_function_name);
-}
-
-/**
- * Adds event callback
- *
- * @param $function_name
- * @param bool|mixed|callable $next_function_name
- * @return array|mixed|false
- */
-function event_bind($function_name, $next_function_name = false)
-{
-    $event = new \Microweber\Event();
-    return $event->on($function_name, $next_function_name);
-
+    return mw()->url_manager->api_link($str);
 
 }

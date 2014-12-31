@@ -6,14 +6,14 @@
 <?php $price_fields = array(); ?>
 <?php foreach($data  as $field): ?>
 <?php 
-    if(!in_array($field['custom_field_type'],$skip_types)){
-		if(isset($field['custom_field_type'])  and $field['custom_field_type'] =='price'){
+    if(!in_array($field['type'],$skip_types)){
+		if(isset($field['type'])  and $field['type'] =='price'){
 			$price_fields[] = $field;
 		} else {
 			$prined_items_count++;
 			$field['params'] = $params;
 			
-			print  mw()->fields->make($field);  
+			print  mw()->fields_manager->make($field);  
     	}
      }
      ?>
@@ -27,7 +27,7 @@
   <?php 
                $prined_items_count++;
                if($price_fields_c >1){ $field['make_select'] = true; } ?>
-  <?php  print  mw()->fields->make($field);   ?>
+  <?php  print  mw()->fields_manager->make($field);   ?>
   <?php endforeach; ?>
   <?php if($price_fields_c >1) : ?>
 </select>

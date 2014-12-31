@@ -126,7 +126,7 @@ $myPaypal -> addField('business', trim(get_option('paypalexpress_username', 'pay
 
 
 
-$currencies_list_paypal = mw('shop')->currency_get_for_paypal();
+$currencies_list_paypal = mw()->shop_manager->currency_get_for_paypal();
 $currencyCode = $place_order['currency'];
 $amount = $place_order['amount'];
 $place_order['payment_amount'] = $amount;
@@ -191,6 +191,7 @@ if($paypal_is_test  == true){
 $myPaypal -> enableTestMode();
 }
 // Let's start the train! 
-$place_order['order_completed'] = 'y';
-$place_order['is_paid'] = 'n';
+$place_order['order_completed'] = 1;
+$place_order['is_paid'] = 0;
 $place_order['success'] = $myPaypal -> submitPayment();
+//dd($place_order);

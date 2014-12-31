@@ -16,7 +16,7 @@ description: Default
       <?php _e("Choose country:"); ?>
     </label>
 
-    <?php  $selected_country = mw('user')->session_get('shipping_country'); ?>
+    <?php  $selected_country = mw()->user_manager->session_get('shipping_country'); ?>
     <select name="country" class="field-full form-control">
 	 <option value=""><?php _e("Choose country"); ?></option>
       <?php foreach($data  as $item): ?>

@@ -14,12 +14,12 @@
 <?php
 $for_id = false;
 $for = 'content';
-if(isset($params['rel']) and trim(strtolower(($params['rel']))) == 'post' and defined('POST_ID')){
+if(isset($params['rel_type']) and trim(strtolower(($params['rel_type']))) == 'post' and defined('POST_ID')){
 	$params['content-id'] = POST_ID; 
 	$for = 'content';
 }
 
-if(isset($params['rel']) and trim(strtolower(($params['rel']))) == 'page' and defined('PAGE_ID')){
+if(isset($params['rel_type']) and trim(strtolower(($params['rel_type']))) == 'page' and defined('PAGE_ID')){
 	$params['content-id'] = PAGE_ID; 
 	$for = 'content';
 }
@@ -42,7 +42,7 @@ if($module_template != false and $module_template != 'none'){
  if(isset($params['content-id'])){
 	 $for_id = $params['content-id'];
  }
-
+ 
  
  if(isset($params['for'])){
 	 $for = $params['for'];
@@ -65,7 +65,9 @@ if($module_template != false and $module_template != 'none'){
 <?php if(isset($for_id) !== false and isset($for) !== false): ?>
 
 <div class="mw-add-to-cart-holder mw-add-to-cart-<?php print $params['id'] ?>" >
-  <?php if($for == 'content' and intval($for_id) == 0){ $for_id = 0; }?>
+  <?php if($for == 'content' and intval($for_id) == 0){
+		$for_id = 0;
+	}?>
   <?php $data = get_custom_fields("field_type=price&for={$for}&for_id=".$for_id.""); ?>
   <?php if(is_array($data) == true): ?>
   <input type="hidden"  name="for" value="<?php print $for ?>" />

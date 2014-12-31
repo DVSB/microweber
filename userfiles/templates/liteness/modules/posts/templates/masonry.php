@@ -14,8 +14,8 @@ description: Masonry
 
 <div class="clearfix module-posts-template-masonry module-posts-template-masonry-liteness" id="posts-<?php print $rand; ?>">
   <?php if (!empty($data)): ?>
-  <script>mw.require("<?php print MW_MODULES_URL; ?>posts/js/masonry.pkgd.min.js", true); </script> 
-  <script>mw.moduleCSS("<?php print MW_MODULES_URL; ?>posts/css/style.css"); </script> 
+  <script>mw.require("<?php print modules_url(); ?>posts/js/masonry.pkgd.min.js", true); </script> 
+  <script>mw.moduleCSS("<?php print modules_url(); ?>posts/css/style.css"); </script> 
   <script>
     mw._masons = mw._masons || [];
     $(document).ready(function(){
@@ -57,8 +57,8 @@ description: Masonry
         <?php if(!isset($show_fields) or $show_fields == false or in_array('title', $show_fields)): ?>
         <h3><a class="lead" href="<?php print $item['link'] ?>"><?php print $item['title'] ?></a></h3>
         <?php endif; ?>
-        <?php if(!isset($show_fields) or $show_fields == false or in_array('created_on', $show_fields)): ?>
-        <small class="date"><span class="glyphicon glyphicon-calendar"></span> <?php print $item['created_on']; ?></small>
+        <?php if(!isset($show_fields) or $show_fields == false or in_array('created_at', $show_fields)): ?>
+        <small class="date"><span class="glyphicon glyphicon-calendar"></span> <?php print $item['created_at']; ?></small>
         <?php endif; ?>
       </div>
       <?php if(!isset($show_fields) or $show_fields == false or in_array('description', $show_fields)): ?>

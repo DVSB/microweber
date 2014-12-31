@@ -13,7 +13,7 @@ if(user_id() == 0){
  
   mw.settings.liveEdit = true;
 
-  mw.require("<?php print( MW_INCLUDES_URL);  ?>js/jquery-ui-1.10.0.custom.min.js");
+  mw.require("<?php print( mw_includes_url());  ?>js/jquery-ui-1.10.0.custom.min.js");
   mw.require("tools.js");
 
   mw.require("liveadmin.js");
@@ -38,7 +38,7 @@ if(user_id() == 0){
 }
 </style>
 <?php
-$here = MW_INCLUDES_DIR;
+$here = mw_includes_path();
   include($here.'toolbar'.DS.'wysiwyg.php');
 include($here.'toolbar'.DS.'wysiwyg_tiny.php');
  

@@ -13,8 +13,8 @@ only_admin_access();
 <?php
   // Explore the files via a web interface.
   $script = $config['url']; // the name of this script
-  $path   =   MW_MEDIA_DIR; // the path the script should access
-  $path_restirct   =   MW_USERFILES; // the path the script should access
+  $path   =   media_base_path(); // the path the script should access
+  $path_restirct   =   userfiles_path(); // the path the script should access
  if(isset($params['path']) and trim($params['path']) != '' and trim($params['path']) != 'false'){
 
 	  $path   =   $params['path']; // the path the script should access
@@ -114,10 +114,10 @@ $path_nav_pop = $path_nav_pop.DS.$item;
     <ul class="mw-browser-list">
       <?php foreach($data['files']  as $item): ?>
       <li>
-        <a title="<?php print basename($item).'&#10;'.dirname($item); ?>" class="mw-browser-list-file mw-browser-list-<?php print substr(strrchr($item,'.'),1); ?>" href="<?php print mw('url')->link_to_file($item) ?>"  onclick="mw.url.windowHashParam('select-file', '<?php print mw('url')->link_to_file($item) ?>'); return false;">
+        <a title="<?php print basename($item).'&#10;'.dirname($item); ?>" class="mw-browser-list-file mw-browser-list-<?php print substr(strrchr($item,'.'),1); ?>" href="<?php print mw()->url_manager->link_to_file($item) ?>"  onclick="mw.url.windowHashParam('select-file', '<?php print mw()->url_manager->link_to_file($item) ?>'); return false;">
           <?php $ext = strtolower(get_file_extension($item)); ?>
           <?php if($ext == 'jpg' or $ext == 'png'  or $ext == 'gif'  or $ext == 'jpeg'  or $ext == 'bmp'): ?>
-          <img data-src="<?php print thumbnail(mw('url')->link_to_file($item), 48, 48); ?>" class="image-item image-item-not-ready" />
+          <img data-src="<?php print thumbnail(mw()->url_manager->link_to_file($item), 48, 48); ?>" class="image-item image-item-not-ready" />
           <?php else: ?>
           <span class="mw-fileico mw-fileico-<?php print $ext ; ?>"><?php print $ext ; ?></span>
           <?php endif; ?>

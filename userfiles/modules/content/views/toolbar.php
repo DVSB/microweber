@@ -6,7 +6,6 @@ $type = 'page';
 $act = url_param('action', 1);
 ?>
 
- 
 <?php
 
 if(isset($params['page-id'])){
@@ -20,19 +19,32 @@ if ($last_page_front == false) {
     }
 }
 }
+
+
+
+$past_page = false;
 if ($last_page_front != false) {
-    $cont_by_url = mw('content')->get_by_id($last_page_front, true);
+    $cont_by_url = mw()->content_manager->get_by_id($last_page_front, true);
     if (isset($cont_by_url) and $cont_by_url == false) {
-        $past_page = mw('content')->get("order_by=updated_on desc&limit=1");
-        $past_page = mw('content')->link($past_page[0]['id']);
+        $past_page = mw()->content_manager->get("order_by=updated_at desc&limit=1");
+        $past_page = mw()->content_manager->link($past_page[0]['id']);
     } else {
-        $past_page = mw('content')->link($last_page_front);
+        $past_page = mw()->content_manager->link($last_page_front);
     }
 } else {
-    $past_page = mw('content')->get("order_by=updated_on desc&limit=1");
-    $past_page = mw('content')->link($past_page[0]['id']);
+    $past_page = mw()->content_manager->get("order_by=updated_at desc&limit=1");
+	if(isset($past_page[0])){
+		$past_page = mw()->content_manager->link($past_page[0]['id']);
+	} else {
+		$past_page = false;
+	}
+	 
+    
+
 }
-?>
+
+ 
+?> 
 <?php if(isset($past_page) and $past_page != false): ?>
 <script>
         $(function () {
@@ -59,15 +71,16 @@ if ($last_page_front != false) {
     </script>
 <?php endif; ?>
 <?php if($page_info): ?>
+
 <?php   
 $content_types = array();
-$available_content_types = get_content('order_by=created_on asc&is_deleted=n&fields=content_type&group_by=content_type&parent='.$page_info['id']);
+$available_content_types = get_content('order_by=created_at asc&is_deleted=0&fields=content_type&group_by=content_type&parent='.$page_info['id']);
 $have_custom_content_types_count = 0;
 if(!empty($available_content_types)){
 	
 	foreach($available_content_types as $available_content_type){
 		if(isset($available_content_type['content_type'])){
-			$available_content_subtypes = get_content('order_by=created_on asc&is_deleted=n&fields=subtype&group_by=subtype&parent='.$page_info['id'].'&content_type='.$available_content_type['content_type']);
+			$available_content_subtypes = get_content('order_by=created_at asc&is_deleted=0&fields=subtype&group_by=subtype&parent='.$page_info['id'].'&content_type='.$available_content_type['content_type']);
 			if(!empty($available_content_subtypes)){
 				
 				$content_types[$available_content_type['content_type']] = $available_content_subtypes;
@@ -133,18 +146,18 @@ $( "#content_type_filter_by_select" ).change(function() {
     </script>
 <?php endif; ?>
 <?php endif; ?>
-
+ 
 <div class="admin-manage-toolbar-holder">
   <div class="admin-manage-toolbar">
     <div class="admin-manage-toolbar-content">
       <?php if(!isset($edit_page_info)): ?>
-      <?php mw()->event->emit('module.content.manager.toolbar.start', $page_info) ?>
+      <?php mw()->event_manager->trigger('module.content.manager.toolbar.start', $page_info) ?>
       <div class="mw-ui-row" style="width: 100%;">
         <div class="mw-ui-col">
           <div class="mw-ui-row" style="width: 100%;padding-top: 19px;">
             <div class="mw-ui-col">
               <?php if (!isset($params['category-id']) and isset($page_info) and is_array($page_info)): ?>
-              <?php if ($page_info['is_shop'] == 'y') {
+              <?php if ($page_info['is_shop'] == 1) {
                                     $type = 'shop';
                                 } elseif ($page_info['subtype'] == 'dynamic') {
                                     $type = 'dynamicpage';
@@ -192,8 +205,8 @@ $( "#content_type_filter_by_select" ).change(function() {
                 <div class="mw-ui-dropdown-content">
                     <div class="mw-ui-btn-vertical-nav">
                            <?php   event_trigger('content.create.menu'); ?>
-
-    <?php $create_content_menu = mw()->module->ui('content.create.menu'); ?>
+ 
+    <?php $create_content_menu = mw()->modules->ui('content.create.menu'); ?>
     <?php if (!empty($create_content_menu)): ?>
     <?php foreach ($create_content_menu as $type => $item): ?>
     <?php $title = ( isset( $item['title']))? ($item['title']) : false ; ?>
@@ -210,7 +223,7 @@ $( "#content_type_filter_by_select" ).change(function() {
    <?php endif; ?>
    
    
- 
+
                   
                   
                   
@@ -281,16 +294,16 @@ $( "#content_type_filter_by_select" ).change(function() {
                                                                     data-tip="<?php _e("Go Live Edit"); ?>"
                                                                     data-tipposition="bottom-center"><span
                                     class="mw-icon-live"></span></a></div>
-            <?php mw()->event->emit('module.content.manager.toolbar.end', $page_info); ?>
+            <?php mw()->event_manager->trigger('module.content.manager.toolbar.end', $page_info); ?>
           </div>
           <?php else: ?>
           <?php endif; ?>
         </div>
       </div>
       <?php if($page_info): ?>
-      <?php mw()->event->emit('module.content.manager.toolbar', $page_info) ?>
-      <?php endif; ?>
-      <?php $custom_tabs = mw()->module->ui('content.manager.toolbar'); ?>
+      <?php mw()->event_manager->trigger('module.content.manager.toolbar', $page_info) ?>
+      <?php endif; ?> 
+      <?php $custom_tabs = mw()->modules->ui('content.manager.toolbar'); ?>
       <?php if(!empty($custom_tabs)): ?>
       <div id="manage-content-toolbar-tabs">
         <div class="mw-ui-btn-nav mw-ui-btn-nav-tabs" id="manage-content-toolbar-tabs-nav">
@@ -314,14 +327,26 @@ $( "#content_type_filter_by_select" ).change(function() {
       <?php if (!isset($edit_page_info)): ?>
       <div class="manage-toobar manage-toolbar-top">
         <div class="manage-toobar-content">
-          <div class="mw-ui-link-nav"> <span class="mw-ui-link"
-                                                           onclick="mw.check.all('#pages_edit_container')">
+          <div class="mw-ui-link-nav">
+
+          <span class="mw-ui-link"  onclick="mw.check.all('#pages_edit_container')">
             <?php _e("Select All"); ?>
             </span> <span class="mw-ui-link" onclick="mw.check.none('#pages_edit_container')">
             <?php _e("Unselect All"); ?>
-            </span> <span class="mw-ui-link" onclick="delete_selected_posts();">
-            <?php _e("Delete"); ?>
-            </span></div>
+            </span>
+
+            <div class="mw-dropdown mw-dropdown-default" id="bulk-actions">
+              <span class="mw-dropdown-value mw-ui-btn mw-ui-btn-small mw-dropdown-val">Bulk actions</span>
+              <div class="mw-dropdown-content">
+                <ul>
+                  <li><a onclick="assign_selected_posts_to_category();">Move to category</a></li>
+                  <li><a onclick="delete_selected_posts();"><?php _e("Delete"); ?></a></li>
+                </ul>
+              </div>
+            </div>
+
+
+            </div>
         </div>
       </div>
       <?php endif; ?>
@@ -329,5 +354,10 @@ $( "#content_type_filter_by_select" ).change(function() {
   </div>
 </div>
 
+<script>
+    $(document).ready(function(){
+       mw.dropdown();
+    });
+</script>
 
 

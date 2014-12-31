@@ -63,7 +63,7 @@ if ($cur_template == false) {
                 <?php foreach ($site_templates as $site_template): ?>
                     <?php if (isset($site_template['dir_name'])): ?>
                         <?php
-                        $template_dir = MW_TEMPLATES_DIR . $site_template['dir_name'];
+                        $template_dir = templates_path() . $site_template['dir_name'];
                         $possible_dir = $template_dir . DS . 'modules' . DS . $mod_name . DS;
                         $possible_dir = normalize_path($possible_dir, false)
                         ?>
@@ -74,7 +74,7 @@ if ($cur_template == false) {
 
                             $options['for_modules'] = 1;
                             $options['path'] = $possible_dir;
-                            $templates = mw('layouts')->get_all($options);
+                            $templates = mw()->layouts_manager->get_all($options);
 
                             ?>
                             <?php if (is_array($templates)): ?>

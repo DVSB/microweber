@@ -39,23 +39,23 @@ $rand = uniqid(); ?>
 
  </script>
 <?php if(!isset($is_shop) or $is_shop == false): ?>
-<?php $is_shop = false; $pages = get_content('content_type=page&subtype=dynamic&is_shop=n&limit=1000');   ?>
+<?php $is_shop = false; $pages = get_content('content_type=page&subtype=dynamic&is_shop=1&limit=1000');   ?>
 <?php else:  ?>
-<?php $pages = get_content('content_type=page&is_shop=y&limit=1000');   ?>
+<?php $pages = get_content('content_type=page&is_shop=0&limit=1000');   ?>
 <?php endif; ?>
 <?php $posts_parent_page =  get_option('data-page-id', $params['id']); ?>
 <?php if(isset($params['global']) and $params['global'] != false) :  ?>
 <?php if($set_content_type =='product'):  ?>
-<?php $is_shop = 1; $pages = get_content('content_type=page&is_shop=y&limit=1000');   ?>
+<?php $is_shop = 1; $pages = get_content('content_type=page&is_shop=0&limit=1000');   ?>
 <?php endif; ?>
 
 
-
+ 
 
 <label class="mw-ui-label"><?php _e("Content type"); ?></label>
 
   <select name="data-content-type" id="the_post_data-content-type<?php print  $rand ?>"  class="mw-ui-field w100 mw_option_field"  onchange="mw_reload_content_mod_window(1)"  >
-    <option  <?php if(('' == trim($set_content_type))): ?>   selected="selected"  <?php endif; ?>><?php _e("Choose content type"); ?></option>
+    <option  value=""   <?php if(('' == trim($set_content_type))): ?>  selected="selected"  <?php endif; ?>><?php _e("Choose content type"); ?></option>
     <option  value="page"    <?php if(('page' == trim($set_content_type))): ?>   selected="selected"  <?php endif; ?>><?php _e("Pages"); ?></option>
     <option  value="post"    <?php if(('post' == trim($set_content_type))): ?>   selected="selected"  <?php endif; ?>><?php _e("Posts"); ?></option>
     <option  value="product"    <?php if(('product' == trim($set_content_type))): ?>   selected="selected"  <?php endif; ?>><?php _e("Product"); ?></option>
@@ -113,7 +113,7 @@ $pt_opts['active_code_tag'] = '   selected="selected"  ';
         $pt_opts['list_item_tag'] = "option";
         $pt_opts['active_ids'] = $posts_parent_category;
         $pt_opts['active_code_tag'] = '   selected="selected"  ';
-        $pt_opts['rel'] = 'content';
+        $pt_opts['rel_type'] = 'content';
         $pt_opts['rel_id'] = $posts_parent_page;
         category_tree($pt_opts);
   ?>
@@ -216,7 +216,7 @@ $show_fields = array();
   </div>
   <div class="mw-ui-row-nodrop">
     <div class="mw-ui-col"><label class="mw-ui-check">
-      <input type="checkbox" name="data-show" value="created_on" class="mw_option_field"  <?php if(in_array('created_on',$show_fields)): ?>   checked="checked"  <?php endif; ?> />
+      <input type="checkbox" name="data-show" value="created_at" class="mw_option_field"  <?php if(in_array('created_at',$show_fields)): ?>   checked="checked"  <?php endif; ?> />
       <span></span> <span><?php _e("Date"); ?></span></label>
     </div>
     <div class="mw-ui-col"></div>
@@ -240,8 +240,8 @@ $show_fields = array();
         <select name="data-order-by"   class="mw-ui-field w100 mw_option_field" data-also-reload="<?php print  $config['the_module'] ?>"   >
           <option  value=""    <?php if((0 == intval($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Position"); ?> (ASC)</option>
           <option  value="position asc"    <?php if(('position asc' == trim($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Position"); ?> (DESC)</option>
-          <option  value="created_on desc"    <?php if(('created_on desc' == trim($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Date"); ?> (ASC)</option>
-          <option  value="created_on asc"    <?php if(('created_on asc' == trim($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Date"); ?> (DESC)</option>
+          <option  value="created_at desc"    <?php if(('created_at desc' == trim($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Date"); ?> (ASC)</option>
+          <option  value="created_at asc"    <?php if(('created_at asc' == trim($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Date"); ?> (DESC)</option>
           <option  value="title asc"    <?php if(('title asc' == trim($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Title"); ?> (ASC)</option>
           <option  value="title desc"    <?php if(('title desc' == trim($ord_by))): ?>   selected="selected"  <?php endif; ?>><?php _e("Title"); ?> (DESC)</option>
         </select>

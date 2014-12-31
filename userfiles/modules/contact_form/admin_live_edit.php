@@ -45,7 +45,7 @@ $(document).ready(function(){
   </div>
   <div class="mw-ui-box mw-ui-box-content">
     <div class="tab" style="display: block">
-        <module type="forms/assign_list_to_module"  data-for-module="<?php print $config['module_name'] ?>" data-for-module-id="<?php print $params['id'] ?>" />
+        <module type="contact_form/manager/assign_list_to_module"  data-for-module="<?php print $config['module_name'] ?>" data-for-module-id="<?php print $params['id'] ?>" />
         <label class="mw-ui-label"><small><?php _e("Contact Form Fields"); ?></small></label>
         <module type="custom_fields"  view="admin" data-for="module" data-id="<?php print $params['id'] ?>" />
       </div>
@@ -91,7 +91,7 @@ $(document).ready(function(){
                 <?php if(get_option('disable_captcha', $params['id']) =='y'): ?>   checked="checked"  <?php endif; ?>
           />
           <span></span> <span><?php _e("Disable Code Verification ex"); ?>.:</span> </label>
-        <img src="<?php print MW_INCLUDES_URL; ?>img/code_verification_example.jpg" class="relative" style="top: 7px;left:10px;" alt="" />
+        <img src="<?php print mw_includes_url(); ?>img/code_verification_example.jpg" class="relative" style="top: 7px;left:10px;" alt="" />
 
         <hr>
 

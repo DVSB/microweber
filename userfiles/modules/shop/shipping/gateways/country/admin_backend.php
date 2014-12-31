@@ -6,8 +6,8 @@
 <?php
 
 
-require_once($config['path_to_module'] . 'shipping_to_country.php');
-$shipping_to_country = new shipping_to_country();
+
+$shipping_to_country =  mw('shop\shipping\gateways\country\shipping_to_country');
 
 
 $data = $data_orig = $shipping_to_country->get();
@@ -18,13 +18,13 @@ if ($data == false) {
 $countries_used = array();
 $data[] = array();
 
-$countries = mw('forms')->countries_list();
+$countries = mw()->forms_manager->countries_list();
 
 if (is_array($countries)) {
     asort($countries);
 }
 if (!is_array($countries)) {
-    $countries = mw('forms')->countries_list(1);
+    $countries = mw()->forms_manager->countries_list(1);
 }
 else {
     array_unshift($countries, "Worldwide");
@@ -228,7 +228,7 @@ foreach ($datas as $data_key => $data): ?>
             if (!isset($item['id'])) {
                 if ($data_key == 'data_active') {
                     $item['id'] = 0;
-                    $item['is_active'] = 'y';
+                    $item['is_active'] = 1;
                     $item['shipping_country'] = 'new';
                     $new = true;
                 }
@@ -319,6 +319,8 @@ foreach ($datas as $data_key => $data): ?>
                                     <?php _e("Choose country"); ?>
                                 </option>
                             <?php endif; ?>
+                            
+                            <?php  if (is_array($countries)) : ?>
                             <?php foreach ($countries as $item1): ?>
                                 <?php
                                 $disabled = '';
@@ -330,6 +332,7 @@ foreach ($datas as $data_key => $data): ?>
                                 ?>
                                 <option value="<?php print $item1 ?>" <?php if (isset($item['shipping_country']) and $item1 == $item['shipping_country']): ?> selected="selected" <?php else : ?> <?php print $disabled ?> <?php endif; ?>  ><?php print $item1 ?></option>
                             <?php endforeach; ?>
+                             <?php endif; ?>
                         </select>
 
                                     <ul class="mw-ui-inline-list">
@@ -342,14 +345,14 @@ foreach ($datas as $data_key => $data): ?>
                                             <label class="mw-ui-check">
                                                 <input
                                                   name="is_active" type="radio" class="semi_hidden is_active_n"
-                                                  value="n" <?php if (isset($item['is_active']) and '' == trim($item['is_active']) or 'n' == trim($item['is_active'])): ?>   checked="checked"  <?php endif; ?> />
+                                                  value="0" <?php if (isset($item['is_active']) and '' == trim($item['is_active']) or '0' == trim($item['is_active'])): ?>   checked="checked"  <?php endif; ?> />
                                                  <span></span>
                                                  <span><?php _e("No"); ?></span>
                                             </label>
                                       </li>
                                     <li>
                                         <label class="mw-ui-check">
-                                          <input name="is_active" type="radio" class="semi_hidden is_active_y" value="y" <?php if (isset($item['is_active']) and 'y' == trim($item['is_active'])): ?>   checked="checked"  <?php endif; ?> />
+                                          <input name="is_active" type="radio" class="semi_hidden is_active_y" value="1" <?php if (isset($item['is_active']) and '1' == trim($item['is_active'])): ?>   checked="checked"  <?php endif; ?> />
                                           <span></span>
                                           <span><?php _e("Yes"); ?></span>
                                         </label>
@@ -377,7 +380,7 @@ foreach ($datas as $data_key => $data): ?>
                                 </div>
                                 </div>
                                     <div class="mw-ui-col"><div class="mw-ui-col-container">
-                                       <label class="mw-ui-label"><?php _e("Shipping cost"); ?> <?php print mw('shop')->currency_symbol() ?></label>
+                                       <label class="mw-ui-label"><?php _e("Shipping cost"); ?> <?php print mw()->shop_manager->currency_symbol() ?></label>
                                        <input class="mw-ui-field shipping-price-field price-field" type="text" onkeyup="mw.form.typeNumber(this);"
                                          placeholder="0"
                                          name="shipping_cost"
@@ -389,7 +392,7 @@ foreach ($datas as $data_key => $data): ?>
                                     <div class="mw-ui-field-holder">
                                         <label class="mw-ui-label"><?php _e("Additional cost for"); ?> <em>1
                                                 <?php _e("cubic"); ?> <?php print $size_units ?></em>
-                                            &nbsp;<b><?php print mw('shop')->currency_symbol() ?></b></label>
+                                            &nbsp;<b><?php print mw()->shop_manager->currency_symbol() ?></b></label>
                                         <span class="mwsico-width"></span>
                                         <input type="text" name="shipping_price_per_size"
                                                value="<?php print  floatval($item['shipping_price_per_size']); ?>"
@@ -398,7 +401,7 @@ foreach ($datas as $data_key => $data): ?>
                                     <div class="mw-ui-field-holder">
                                         <label class="mw-ui-label"><?php _e("Additional cost for"); ?>
                                             <em>1 <?php print $weight_units ?></em>
-                                            &nbsp;<b><?php print mw('shop')->currency_symbol() ?></b></label>
+                                            &nbsp;<b><?php print mw()->shop_manager->currency_symbol() ?></b></label>
                                         <span class="mwsico-usd"></span>
                                         <input type="text" name="shipping_price_per_weight"
                                                value="<?php print floatval($item['shipping_price_per_weight']); ?>"
@@ -409,7 +412,7 @@ foreach ($datas as $data_key => $data): ?>
                                     <div class="mw-ui-field-holder">
                                         <label class="mw-ui-label"><?php _e("Cost for shipping"); ?> <em><?php _e("each item in the shopping cart"); ?></em> <span class="mw-icon-help-outline mwahi tip" data-tip="<?php _e("This cost will be added to the shipping price for the whole order from the box above"); ?>"></span></label>
 
-                                        <span><b><?php print mw('shop')->currency_symbol() ?></b></span>
+                                        <span><b><?php print mw()->shop_manager->currency_symbol() ?></b></span>
                                         <input type="text" name="shipping_price_per_item"
                                                value="<?php print  floatval($item['shipping_price_per_item']); ?>"
                                                class="mw-ui-field price-field"/>
@@ -439,7 +442,7 @@ foreach ($datas as $data_key => $data): ?>
                                   <div class="mw-ui-col-container">
                                    <label class="mw-ui-label">
                             <?php _e("Shipping cost"); ?>
-                            <?php print mw('shop')->currency_symbol() ?>
+                            <?php print mw()->shop_manager->currency_symbol() ?>
                             </label>
                                 <input  class="mw-ui-field price-field shipping-price-field"
                                       type="text" onkeyup="mw.form.typeNumber(this);"

@@ -90,7 +90,7 @@ $(document).ready(function(){
                     <li><a onclick="mw.url.windowHashParam('option_group', 'users');return false;" class="item-users" href="#option_group=users"><?php _e("Login & Register"); ?></a></li>
                     <li><a onclick="mw.url.windowHashParam('option_group', 'email');return false;" class="item-email" href="#option_group=website"><?php _e("Email"); ?></a></li>
 <?php event_trigger('mw_admin_settings_menu'); ?>
-<?php $settings_menu =  mw()->module->ui('admin.settings.menu'); ?>
+<?php $settings_menu =  mw()->modules->ui('admin.settings.menu'); ?>
 <?php if(is_array($settings_menu) and !empty($settings_menu)): ?>
 <?php foreach($settings_menu as $item): ?>
 <?php $module = ( isset( $item['module'])) ? module_name_encode($item['module']) : false ; ?>
